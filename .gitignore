@@ -1,0 +1,13 @@
+# secretos de firma — NUNCA commitear
+*.jks
+*.keystore
+keystore.properties
+google-services.json
+# build
+build/
+app/build/
+.gradle/
+local.properties
+.idea/
+*.iml
+.claude/

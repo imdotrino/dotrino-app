@@ -1,0 +1,33 @@
+# XcodeGen (brew install xcodegen) → `xcodegen generate` crea Dotrino.xcodeproj en la Mac.
+name: Dotrino
+options:
+  bundleIdPrefix: com.dotrino
+  deploymentTarget:
+    iOS: "16.4"
+targets:
+  Dotrino:
+    type: application
+    platform: iOS
+    sources: [Dotrino]
+    info:
+      path: Dotrino/Info.plist
+      properties:
+        CFBundleDisplayName: Dotrino
+        UILaunchScreen: {}
+        NSCameraUsageDescription: "Para escanear el código de emparejamiento de tu bóveda."
+        UIBackgroundModes: [remote-notification]
+    entitlements:
+      path: Dotrino/Dotrino.entitlements
+      properties:
+        aps-environment: development
+        com.apple.developer.associated-domains:
+          - applinks:dotrino.com
+          - applinks:vault.dotrino.com
+          - applinks:profile.dotrino.com
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.dotrino.app
+        MARKETING_VERSION: 0.1.0
+        CURRENT_PROJECT_VERSION: 1
+        SWIFT_VERSION: "5.9"
+        TARGETED_DEVICE_FAMILY: "1,2"
