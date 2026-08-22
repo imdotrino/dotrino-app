@@ -5,4 +5,7 @@
     <string name="tab_vault">Vault</string>
     <string name="offline">You are offline. Check your network and try again.</string>
     <string name="retry">Retry</string>
+    <string name="channel_vault">Vault requests</string>
+    <string name="notif_title">Your vault has a request</string>
+    <string name="notif_body">Something asks for your keys or a signature. Tap to approve or deny.</string>
 </resources>

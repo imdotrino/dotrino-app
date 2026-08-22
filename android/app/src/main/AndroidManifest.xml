@@ -32,5 +32,13 @@
                 <data android:scheme="https" android:host="profile.dotrino.com" />
             </intent-filter>
         </activity>
+
+        <!-- Timbre de la bóveda por FCM: sin contenido; la app abre Pedidos. -->
+        <service android:name=".PushService" android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+        <meta-data android:name="com.google.firebase.messaging.default_notification_channel_id" android:value="vault" />
     </application>
 </manifest>

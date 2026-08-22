@@ -8,6 +8,8 @@ import android.os.Build
 import android.os.Bundle
 import android.view.View
 import android.webkit.CookieManager
+import android.webkit.JavascriptInterface
+import com.google.firebase.messaging.FirebaseMessaging
 import android.webkit.PermissionRequest
 import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
@@ -39,6 +41,23 @@ class MainActivity : AppCompatActivity() {
         const val VAULT = "https://vault.dotrino.com/devices"
         /** Hosts que se navegan DENTRO de la app; el resto sale al navegador. */
         val INSIDE = Regex("""^([a-z0-9-]+\.)*dotrino\.com$""")
+        /** La Activity viva, para que el servicio de push le avise de un token nuevo. */
+        var current: MainActivity? = null
+    }
+
+    /** Lo que la página ve como `window.DotrinoNative` (solo en *.dotrino.com). */
+    inner class NativeBridge {
+        @JavascriptInterface fun pushToken(): String? = PushService.savedToken(this@MainActivity)
+        @JavascriptInterface fun platform(): String = "android"
+        @JavascriptInterface fun version(): String = BuildConfig.VERSION_NAME
+    }
+
+    /** Token nuevo de FCM → la página lo registra bajo la llave del aparato. */
+    fun pushTokenChanged(token: String) {
+        runOnUiThread {
+            val js = "window.dispatchEvent(new CustomEvent('dotrino-native-push-token',{detail:{kind:'fcm',token:'" + token.replace("'", "") + "'}}))"
+            web.evaluateJavascript(js, null)
+        }
     }
 
     private lateinit var web: WebView
@@ -83,6 +102,11 @@ class MainActivity : AppCompatActivity() {
             askNotifications.launch(Manifest.permission.POST_NOTIFICATIONS)
         }
 
+        current = this
+        PushService.ensureChannel(this)
+        // Pedir el token al arrancar: si ya existe no cambia, y si es nuevo la página lo registra.
+        FirebaseMessaging.getInstance().token.addOnSuccessListener { t -> if (t != null) { getSharedPreferences("push", MODE_PRIVATE).edit().putString("fcmToken", t).apply(); pushTokenChanged(t) } }
+
         if (savedInstanceState == null) {
             val target = intent?.data?.takeIf { it.host?.matches(INSIDE) == true }?.toString() ?: HOME
             web.loadUrl(target)
@@ -95,6 +119,8 @@ class MainActivity : AppCompatActivity() {
         super.onNewIntent(intent)
         intent.data?.takeIf { it.host?.matches(INSIDE) == true }?.let { web.loadUrl(it.toString()) }
     }
+
+    override fun onDestroy() { if (current === this) current = null; super.onDestroy() }
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
@@ -113,6 +139,8 @@ class MainActivity : AppCompatActivity() {
         }
         // El iframe de identidad (id.dotrino.com) es "tercero" para el WebView: sin esto no guarda nada.
         CookieManager.getInstance().setAcceptThirdPartyCookies(web, true)
+        // Puente nativo: solo lo ven las páginas del ecosistema (el WebView no navega fuera).
+        web.addJavascriptInterface(NativeBridge(), "DotrinoNative")
 
         web.webViewClient = object : WebViewClient() {
             override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {

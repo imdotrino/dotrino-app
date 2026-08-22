@@ -5,4 +5,7 @@
     <string name="tab_vault">Bóveda</string>
     <string name="offline">Sin conexión. Revisa tu red e inténtalo de nuevo.</string>
     <string name="retry">Reintentar</string>
+    <string name="channel_vault">Pedidos de tu bóveda</string>
+    <string name="notif_title">Tu bóveda tiene un pedido</string>
+    <string name="notif_body">Alguien pide tus claves o una firma. Toca para aprobar o denegar.</string>
 </resources>

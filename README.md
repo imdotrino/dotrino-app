@@ -22,6 +22,13 @@ Las dos cáscaras cargan **las mismas páginas** y solo difieren en lo nativo (a
 sistema, llavero). El `android/` compila en Linux; `ios/` necesita una Mac con Xcode:
 `brew install xcodegen && cd ios && xcodegen generate && open Dotrino.xcodeproj`.
 
+## Push
+
+El proxio manda por FCM un **timbre sin contenido** (`{ type: 'ring' }`) cuando la bóveda
+tiene un pedido para este aparato; la app muestra el aviso del sistema y al tocarlo abre
+*Pedidos*, que baja el detalle por el proxio. El token de FCM lo registra la página bajo la
+llave del aparato (`id.registerPush`), no la app: así el proxio solo conoce pubkey → token.
+
 ## Compilar (Android)
 
 Requisitos: JDK 17, Android SDK (compileSdk 36). El *wrapper* de Gradle (`gradlew`,
@@ -33,7 +40,9 @@ cd android && ./gradlew assembleDebug   # app/build/outputs/apk/debug/app-debug.
 ./gradlew assembleRelease      # firmado si existe keystore.properties (gitignoreado)
 ```
 
-`keystore.properties`: `storeFile`, `storePassword`, `keyAlias`, `keyPassword`. Los
+Hace falta `android/app/google-services.json` (proyecto Firebase `dotrino-app`, app
+`com.dotrino.app`; gitignoreado) para el push. `keystore.properties`: `storeFile`,
+`storePassword`, `keyAlias`, `keyPassword`. Los
 instaladores llevan la versión en el nombre (`dotrino-app-<ver>.apk`).
 
 MIT.
