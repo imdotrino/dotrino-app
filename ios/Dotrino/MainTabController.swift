@@ -7,6 +7,8 @@ class MainTabController: UIViewController, WKNavigationDelegate, WKUIDelegate {
     static let home = URL(string: "https://dotrino.com/")!
     static let profile = URL(string: "https://profile.dotrino.com/")!
     static let vault = URL(string: "https://vault.dotrino.com/devices")!
+    /// A donde apunta el aviso: los pedidos, separados de la administración.
+    static let approvals = URL(string: "https://vault.dotrino.com/approvals")!
     static func isInside(_ url: URL) -> Bool {
         guard let h = url.host else { return false }
         return h == "dotrino.com" || h.hasSuffix(".dotrino.com")

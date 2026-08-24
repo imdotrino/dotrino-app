@@ -39,6 +39,8 @@ class MainActivity : AppCompatActivity() {
         const val HOME = "https://dotrino.com/"
         const val PROFILE = "https://profile.dotrino.com/"
         const val VAULT = "https://vault.dotrino.com/devices"
+        /** A donde apunta el aviso: los pedidos, separados de la administración. */
+        const val APPROVALS = "https://vault.dotrino.com/approvals"
         /** Hosts que se navegan DENTRO de la app; el resto sale al navegador. */
         val INSIDE = Regex("""^([a-z0-9-]+\.)*dotrino\.com$""")
         /** La Activity viva, para que el servicio de push le avise de un token nuevo. */

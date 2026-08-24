@@ -36,7 +36,7 @@ class PushService : FirebaseMessagingService() {
             ensureChannel(ctx)
             val open = Intent(ctx, MainActivity::class.java).apply {
                 action = Intent.ACTION_VIEW
-                data = Uri.parse(MainActivity.VAULT)
+                data = Uri.parse(MainActivity.APPROVALS)
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP
             }
             val pi = PendingIntent.getActivity(ctx, 1, open, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)

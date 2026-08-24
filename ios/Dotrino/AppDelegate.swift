@@ -29,7 +29,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
 
     /// Un timbre (sin contenido) → abrir Pedidos. El detalle lo trae la página por el proxio.
     func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
-        (window?.rootViewController as? MainTabController)?.open(url: MainTabController.vault)
+        (window?.rootViewController as? MainTabController)?.open(url: MainTabController.approvals)
         completionHandler()
     }
 
