@@ -2,7 +2,7 @@
 
 Cáscara **nativa** (Kotlin) sobre las páginas del ecosistema: abre en `dotrino.com` (el
 home) y lleva pestañas a **Perfil** (`profile.dotrino.com`) y **Bóveda**
-(`vault.dotrino.com/devices`). El pilar de identidad corre dentro del WebView igual que
+(`vault.dotrino.com/vault`). El pilar de identidad corre dentro del WebView igual que
 en el navegador, así que los perfiles —y el multiperfil— son los mismos.
 
 Lo que aporta ser nativa, y el navegador no da:
