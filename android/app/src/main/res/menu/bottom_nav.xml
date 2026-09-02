@@ -2,4 +2,9 @@
     <item android:id="@+id/nav_home" android:title="@string/tab_home" android:icon="@drawable/ic_home" />
     <item android:id="@+id/nav_profile" android:title="@string/tab_profile" android:icon="@drawable/ic_profile" />
     <item android:id="@+id/nav_vault" android:title="@string/tab_vault" android:icon="@drawable/ic_vault" />
+    <!--
+      PEDIDOS: la campana. Antes solo se llegaba aquí tocando el aviso del sistema; si lo
+      descartabas o el teléfono no timbró, no había puerta. Ahora se puede ir a buscar.
+    -->
+    <item android:id="@+id/nav_approvals" android:title="@string/tab_approvals" android:icon="@drawable/ic_approvals" />
 </menu>

@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
+import android.util.Log
 import android.os.Build
 import android.os.Bundle
 import android.view.View
@@ -12,6 +13,7 @@ import android.webkit.JavascriptInterface
 import com.google.firebase.messaging.FirebaseMessaging
 import android.webkit.PermissionRequest
 import android.webkit.ValueCallback
+import android.webkit.ConsoleMessage
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
@@ -36,11 +38,22 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 class MainActivity : AppCompatActivity() {
 
     companion object {
+        const val TAG = "dotrino-app"
         const val HOME = "https://dotrino.com/"
         const val PROFILE = "https://profile.dotrino.com/"
         const val VAULT = "https://vault.dotrino.com/vault"
-        /** A donde apunta el aviso: los pedidos, separados de la administración. */
-        const val APPROVALS = "https://vault.dotrino.com/approvals"
+        /**
+         * A donde apunta el aviso: los pedidos, separados de la administración.
+         *
+         * El `#ring` NO es decoración: le dice a la página que se llegó por el timbre y no
+         * a mano. Con varios perfiles en el mismo teléfono, el pedido es de UNO de ellos y
+         * puede no ser el activo — sin esa marca la página abría con el perfil que hubiera
+         * y enseñaba «este aparato no aprueba pedidos», que es falso y además desorienta.
+         * Con la marca, si hay exactamente un perfil conectado a una bóveda, salta a él.
+         *
+         * Y va en el `#fragment` a propósito: no llega al servidor (CLAUDE.md, §SEO).
+         */
+        const val APPROVALS = "https://vault.dotrino.com/approvals#ring"
         /** Hosts que se navegan DENTRO de la app; el resto sale al navegador. */
         val INSIDE = Regex("""^([a-z0-9-]+\.)*dotrino\.com$""")
         /** La Activity viva, para que el servicio de push le avise de un token nuevo. */
@@ -90,6 +103,7 @@ class MainActivity : AppCompatActivity() {
                 R.id.nav_home -> web.loadUrl(HOME)
                 R.id.nav_profile -> web.loadUrl(PROFILE)
                 R.id.nav_vault -> web.loadUrl(VAULT)
+                R.id.nav_approvals -> web.loadUrl(APPROVALS)
             }
             true
         }
@@ -173,19 +187,46 @@ class MainActivity : AppCompatActivity() {
                     pendingPermission = request; askCamera.launch(Manifest.permission.CAMERA)
                 } else request.grant(request.resources)
             }
+            /**
+             * LA CONSOLA DE LA PÁGINA, A `logcat`.
+             *
+             * Sin esto una cáscara WebView es indiagnosticable: la página puede estar
+             * gritando un error y desde fuera solo se ve una pantalla que no avanza. Pasó
+             * con un emparejamiento que se quedaba en «hablando con tu bóveda» y no había
+             * absolutamente nada que mirar.
+             *
+             * Solo en compilaciones de DEPURACIÓN: en una de release los mensajes de la
+             * página acabarían en el registro del sistema, que lo lee cualquier app con
+             * permiso, y ahí puede ir cualquier cosa.
+             */
+            override fun onConsoleMessage(m: ConsoleMessage): Boolean {
+                if (!BuildConfig.DEBUG) return false
+                val donde = "${m.sourceId()?.substringAfterLast('/') ?: "?"}:${m.lineNumber()}"
+                val texto = "[web] ${m.message()}  ($donde)"
+                when (m.messageLevel()) {
+                    ConsoleMessage.MessageLevel.ERROR -> Log.e(TAG, texto)
+                    ConsoleMessage.MessageLevel.WARNING -> Log.w(TAG, texto)
+                    else -> Log.i(TAG, texto)
+                }
+                return true
+            }
         }
     }
 
     /** La pestaña marcada sigue a la página que se está viendo. */
     private fun syncNav(url: String) {
-        val host = Uri.parse(url).host ?: return
+        val u = Uri.parse(url)
+        val host = u.host ?: return
+        // La ruta importa: `/approvals` y `/vault` viven en el MISMO host, así que mirar
+        // solo el host dejaba la campana sin marcar y encendía «Bóveda» estando en Pedidos.
         val id = when {
             host == "profile.dotrino.com" -> R.id.nav_profile
+            host == "vault.dotrino.com" && u.path?.startsWith("/approvals") == true -> R.id.nav_approvals
             host == "vault.dotrino.com" -> R.id.nav_vault
             host == "dotrino.com" -> R.id.nav_home
             else -> return
         }
         if (nav.selectedItemId != id) { nav.setOnItemSelectedListener(null); nav.selectedItemId = id; nav.setOnItemSelectedListener { item ->
-            when (item.itemId) { R.id.nav_home -> web.loadUrl(HOME); R.id.nav_profile -> web.loadUrl(PROFILE); R.id.nav_vault -> web.loadUrl(VAULT) }; true } }
+            when (item.itemId) { R.id.nav_home -> web.loadUrl(HOME); R.id.nav_profile -> web.loadUrl(PROFILE); R.id.nav_vault -> web.loadUrl(VAULT); R.id.nav_approvals -> web.loadUrl(APPROVALS) }; true } }
     }
 }

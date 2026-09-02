@@ -3,6 +3,7 @@
     <string name="tab_home">Inicio</string>
     <string name="tab_profile">Perfil</string>
     <string name="tab_vault">Bóveda</string>
+    <string name="tab_approvals">Pedidos</string>
     <string name="offline">Sin conexión. Revisa tu red e inténtalo de nuevo.</string>
     <string name="retry">Reintentar</string>
     <string name="channel_vault">Pedidos de tu bóveda</string>

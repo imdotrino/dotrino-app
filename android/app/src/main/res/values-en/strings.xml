@@ -3,6 +3,7 @@
     <string name="tab_home">Home</string>
     <string name="tab_profile">Profile</string>
     <string name="tab_vault">Vault</string>
+    <string name="tab_approvals">Requests</string>
     <string name="offline">You are offline. Check your network and try again.</string>
     <string name="retry">Retry</string>
     <string name="channel_vault">Vault requests</string>
