@@ -18,10 +18,10 @@ android {
 
     defaultConfig {
         applicationId = "com.dotrino.app"
-        minSdk = 26
+        minSdk = 31
         targetSdk = 35
-        versionCode = 5
-        versionName = "0.1.4"
+        versionCode = 6
+        versionName = "0.2.0"
     }
 
     signingConfigs {
@@ -50,7 +50,11 @@ android {
 }
 
 dependencies {
+    implementation(project(":dotrino-native"))
     implementation("androidx.appcompat:appcompat:1.7.0")
+    implementation("androidx.recyclerview:recyclerview:1.3.2")
+    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
     implementation("androidx.webkit:webkit:1.12.1")
     implementation("com.google.android.material:material:1.12.0")
     implementation("androidx.activity:activity-ktx:1.9.3")

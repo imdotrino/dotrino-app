@@ -3,4 +3,8 @@
     <color name="accent">#4F8CFF</color>
     <color name="fg">#DBE7F7</color>
     <color name="muted">#8A9BB5</color>
+    <color name="card">#131D31</color>
+    <color name="warn">#FFD98A</color>
+    <color name="ok">#7FE0A8</color>
+    <color name="bad">#FF9AA2</color>
 </resources>

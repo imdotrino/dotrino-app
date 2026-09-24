@@ -55,10 +55,12 @@ class PushService : FirebaseMessagingService() {
 
     override fun onNewToken(token: String) {
         getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putString(KEY_TOKEN, token).apply()
-        MainActivity.current?.pushTokenChanged(token)
+        MainActivity.current?.pushTokenChanged(token) ?: NativeKeysBridge.registerAll(this, token)
     }
 
     override fun onMessageReceived(message: RemoteMessage) {
+        // Con los Pedidos a la vista, se refrescan ahí y sobra el aviso del sistema.
+        if (MainActivity.current?.onRing() == true) return
         // Venga lo que venga (ring o futuro), el aviso es el mismo: no hay contenido que mostrar.
         notifyRequest(this)
     }

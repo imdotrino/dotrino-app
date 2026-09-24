@@ -56,6 +56,8 @@ class MainActivity : AppCompatActivity() {
         const val APPROVALS = "https://vault.dotrino.com/approvals#ring"
         /** Hosts que se navegan DENTRO de la app; el resto sale al navegador. */
         val INSIDE = Regex("""^([a-z0-9-]+\.)*dotrino\.com$""")
+        /** Donde se da de alta una cuenta en nativo: la consola, con la llave del Keystore. */
+        const val ADD_NATIVE = "https://vault.dotrino.com/d?native=1"
         /** La Activity viva, para que el servicio de push le avise de un token nuevo. */
         var current: MainActivity? = null
     }
@@ -67,8 +69,21 @@ class MainActivity : AppCompatActivity() {
         @JavascriptInterface fun version(): String = BuildConfig.VERSION_NAME
     }
 
-    /** Token nuevo de FCM → la página lo registra bajo la llave del aparato. */
+    /**
+     * Llegó un timbre. Si la pantalla de Pedidos está a la vista, se refresca ahí mismo y no
+     * hace falta aviso del sistema: devuelve `true`.
+     */
+    fun onRing(): Boolean {
+        var handled = false
+        val latch = java.util.concurrent.CountDownLatch(1)
+        runOnUiThread { handled = approvals.visible && resumed; if (handled) approvals.ring(); latch.countDown() }
+        latch.await(2, java.util.concurrent.TimeUnit.SECONDS)
+        return handled
+    }
+
+    /** Token nuevo de FCM → la página lo registra bajo la llave del aparato, y cada cuenta nativa también. */
     fun pushTokenChanged(token: String) {
+        NativeKeysBridge.registerAll(this, token)
         runOnUiThread {
             val js = "window.dispatchEvent(new CustomEvent('dotrino-native-push-token',{detail:{kind:'fcm',token:'" + token.replace("'", "") + "'}}))"
             web.evaluateJavascript(js, null)
@@ -78,6 +93,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var web: WebView
     private lateinit var nav: BottomNavigationView
     private lateinit var offline: LinearLayout
+    private lateinit var approvals: ApprovalsScreen
+    private var resumed = false
     private var fileChooser: ValueCallback<Array<Uri>>? = null
     private var pendingPermission: PermissionRequest? = null
 
@@ -98,17 +115,13 @@ class MainActivity : AppCompatActivity() {
         findViewById<Button>(R.id.retry).setOnClickListener { offline.visibility = View.GONE; web.reload() }
 
         setupWebView()
-        nav.setOnItemSelectedListener { item ->
-            when (item.itemId) {
-                R.id.nav_home -> web.loadUrl(HOME)
-                R.id.nav_profile -> web.loadUrl(PROFILE)
-                R.id.nav_vault -> web.loadUrl(VAULT)
-                R.id.nav_approvals -> web.loadUrl(APPROVALS)
-            }
-            true
-        }
+        approvals = ApprovalsScreen(this, findViewById(R.id.approvals), findViewById(R.id.approvalsList),
+            onAddAccount = { approvals.hide(); web.loadUrl(ADD_NATIVE) },
+            onOpenWeb = { approvals.hide(); web.loadUrl(APPROVALS) })
+        nav.setOnItemSelectedListener { item -> onTab(item.itemId); true }
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
+                if (approvals.visible) { approvals.hide(); return }
                 if (web.canGoBack()) web.goBack() else { isEnabled = false; onBackPressedDispatcher.onBackPressed() }
             }
         })
@@ -124,8 +137,7 @@ class MainActivity : AppCompatActivity() {
         FirebaseMessaging.getInstance().token.addOnSuccessListener { t -> if (t != null) { getSharedPreferences("push", MODE_PRIVATE).edit().putString("fcmToken", t).apply(); pushTokenChanged(t) } }
 
         if (savedInstanceState == null) {
-            val target = intent?.data?.takeIf { it.host?.matches(INSIDE) == true }?.toString() ?: HOME
-            web.loadUrl(target)
+            if (!openIntent(intent)) web.loadUrl(HOME)
         } else {
             web.restoreState(savedInstanceState)
         }
@@ -133,8 +145,42 @@ class MainActivity : AppCompatActivity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        intent.data?.takeIf { it.host?.matches(INSIDE) == true }?.let { web.loadUrl(it.toString()) }
+        openIntent(intent)
     }
+
+    /**
+     * El aviso de un pedido (y el enlace a `/approvals`) abre los Pedidos NATIVOS si este
+     * teléfono ya aprueba en nativo alguna cuenta; si no, la página de siempre.
+     */
+    private fun openIntent(intent: Intent?): Boolean {
+        val u = intent?.data?.takeIf { it.host?.matches(INSIDE) == true } ?: return false
+        if (u.host == "vault.dotrino.com" && u.path?.startsWith("/approvals") == true && approvals.model.accountsCount() > 0) {
+            selectTab(R.id.nav_approvals); approvals.show(); return true
+        }
+        approvals.hide(); web.loadUrl(u.toString()); return true
+    }
+
+    private fun onTab(id: Int) {
+        // Pedidos es SIEMPRE la pantalla nativa. Sin cuentas nativas todavía, ella misma lo
+        // dice y ofrece las dos salidas: añadir una, o ver los pedidos en la web como antes.
+        if (id == R.id.nav_approvals) { approvals.show(); return }
+        approvals.hide()
+        when (id) {
+            R.id.nav_home -> web.loadUrl(HOME)
+            R.id.nav_profile -> web.loadUrl(PROFILE)
+            R.id.nav_vault -> web.loadUrl(VAULT)
+        }
+    }
+
+    private fun selectTab(id: Int) {
+        if (nav.selectedItemId == id) return
+        nav.setOnItemSelectedListener(null); nav.selectedItemId = id
+        nav.setOnItemSelectedListener { item -> onTab(item.itemId); true }
+    }
+
+    override fun onResume() { super.onResume(); resumed = true; if (approvals.visible) approvals.show() }
+    override fun onPause() { resumed = false; super.onPause() }
+    override fun onStop() { approvals.stop(); super.onStop() }
 
     override fun onDestroy() { if (current === this) current = null; super.onDestroy() }
 
@@ -157,6 +203,8 @@ class MainActivity : AppCompatActivity() {
         CookieManager.getInstance().setAcceptThirdPartyCookies(web, true)
         // Puente nativo: solo lo ven las páginas del ecosistema (el WebView no navega fuera).
         web.addJavascriptInterface(NativeBridge(), "DotrinoNative")
+        // El alta NATIVA de una cuenta: solo la ve la consola de la bóveda (se filtra por origen).
+        NativeKeysBridge.install(web, this)
 
         web.webViewClient = object : WebViewClient() {
             override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
@@ -226,7 +274,7 @@ class MainActivity : AppCompatActivity() {
             host == "dotrino.com" -> R.id.nav_home
             else -> return
         }
-        if (nav.selectedItemId != id) { nav.setOnItemSelectedListener(null); nav.selectedItemId = id; nav.setOnItemSelectedListener { item ->
-            when (item.itemId) { R.id.nav_home -> web.loadUrl(HOME); R.id.nav_profile -> web.loadUrl(PROFILE); R.id.nav_vault -> web.loadUrl(VAULT); R.id.nav_approvals -> web.loadUrl(APPROVALS) }; true } }
+        if (approvals.visible) return
+        selectTab(id)
     }
 }

@@ -11,10 +11,33 @@ Lo que aporta ser nativa, y el navegador no da:
    con aprobación, una firma SSH), con *Aprobar / Denegar* en el propio aviso.
 2. **Llave SSH en el llavero del teléfono** (Android Keystore): ni la app puede extraerla.
 
+## Pedidos nativos (0.2.0)
+
+La pestaña **Pedidos** es nativa: no pasa por el WebView. Cada cuenta en la que el teléfono
+aprueba tiene **su propia llave en el Android Keystore** (firma ECDSA + cifrado ECDH P-256,
+no extraíbles), y es un aparato más del acta de esa cuenta con `+aprueba`.
+
+- **Multicuenta:** una sección por cuenta con su nombre, en orden fijo. Cada una mantiene una
+  conexión al proxio mientras la pantalla está a la vista, así que un pedido llega en vivo
+  (~0,5 s tras el aviso de la bóveda). El sondeo de 15 s es solo la red de seguridad.
+- **Qué pide:** «pide tus claves de…» con el comando y la carpeta, o «quiere guardar
+  variables en…» con los nombres. Los dos llegan sellados a la llave del teléfono y se abren
+  aquí.
+- **Alta:** Pedidos → *Añadir cuenta* abre `vault.dotrino.com/d?native=1`. Ahí se pega o
+  escanea la invitación de la bóveda y se teclea el código en la bóveda, como siempre.
+  Después, en la bóveda: `dotrino-vault caps <ID> +aprueba`. El puente de alta
+  (`DotrinoNativeKeys`) solo lo ve esa página (se filtra por origen), y la llave solo firma
+  su propio `enroll`.
+- **Quitar** una cuenta del teléfono: pulsación larga sobre su nombre. Sus llaves se borran
+  aquí; en la bóveda se quita como cualquier aparato.
+
+La cripto y el cable viven en el módulo **`dotrino-native`** (ver su README), no en la app.
+
 ## Estructura
 
 ```
-android/   Kotlin · Gradle · WebView + pestañas · push (FCM)
+android/   Kotlin · Gradle · WebView + pestañas · push (FCM) · Pedidos nativos
+  dotrino-native/   la librería: canónico, firma, sobres, proxio, bóveda (puerto mínimo del pilar JS)
 ios/       Swift · WKWebView + pestañas · push (APNs) · XcodeGen (project.yml)
 ```
 
