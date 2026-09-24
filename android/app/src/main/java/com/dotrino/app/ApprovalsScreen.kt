@@ -104,7 +104,7 @@ class ApprovalsScreen(
         for (st in ordered) {
             val id = st.account.id
             rows += Header(st)
-            for (a in st.items) { rows += Req(id, a, a.id in st.busy); if (a.kind != "write") anyRead = true }
+            for (a in st.items) { rows += Req(id, a, a.id in st.busy); if (a.kind == "read") anyRead = true }
             if (st.items.isEmpty() && st.confirmedAt != null) rows += Note("n:$id", s(R.string.none))
             if (st.grants.isNotEmpty()) {
                 rows += Note("gt:$id", s(R.string.grants_title))
@@ -191,11 +191,22 @@ class ApprovalsScreen(
         private fun bindReq(v: View, r: Req) {
             val a = r.a
             val who = a.label.ifBlank { a.deviceId }.let { if (a.label.isNotBlank()) "$it (${a.deviceId})" else it }
-            v.findViewById<TextView>(R.id.who).text = s(if (a.kind == "write") R.string.req_writes else R.string.req_asks, who, a.ns)
             val detail = v.findViewById<TextView>(R.id.detail)
             val sub = v.findViewById<TextView>(R.id.sub)
             val ctx = a.ctx
+            v.findViewById<TextView>(R.id.who).text = when (a.kind) {
+                // The vault itself asks to install a new version (vaultd ≥ 0.130.0).
+                "update" -> s(R.string.req_update, ctx?.get("version")?.jsonPrimitive?.content ?: "?")
+                "write" -> s(R.string.req_writes, who, a.ns)
+                else -> s(R.string.req_asks, who, a.ns)
+            }
             when {
+                a.kind == "update" -> {
+                    val from = ctx?.get("from")?.jsonPrimitive?.content
+                    detail.text = if (from != null) s(R.string.req_update_from, from) else ""
+                    sub.visibility = View.VISIBLE; sub.text = s(R.string.req_update_verified)
+                    sub.setTextColor(ContextCompat.getColor(activity, R.color.muted))
+                }
                 a.kind == "write" && ctx != null -> {
                     val keys = (ctx["keys"] as? JsonArray)?.mapNotNull { (it as? JsonPrimitive)?.content } ?: emptyList()
                     detail.text = s(R.string.req_keys, keys.joinToString(", ")); sub.visibility = View.GONE

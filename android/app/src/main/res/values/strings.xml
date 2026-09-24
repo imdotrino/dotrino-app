@@ -42,4 +42,7 @@
     <string name="remove_confirm">¿Quitar %1$s de este teléfono? Sus llaves se borran de aquí. En la bóveda sigue apareciendo hasta que lo quites allí.</string>
     <string name="cancel">Cancelar</string>
     <string name="open_web">Ver los pedidos en la web</string>
+    <string name="req_update">Tu bóveda quiere actualizarse a la %1$s</string>
+    <string name="req_update_from">Ahora tiene la %1$s</string>
+    <string name="req_update_verified">Se verifica contra su firma antes de instalar.</string>
 </resources>
