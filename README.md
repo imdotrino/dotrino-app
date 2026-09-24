@@ -60,12 +60,19 @@ Gradle 8.11.1, sin nada de wallet dentro.
 
 ```sh
 cd android && ./gradlew assembleDebug   # app/build/outputs/apk/debug/app-debug.apk
-./gradlew assembleRelease      # firmado si existe keystore.properties (gitignoreado)
+# Google Play: AAB firmado con la llave de SUBIDA, que vive en la bóveda (cajón `claude`)
+dotrino-env run --ns claude -- ./gradlew --no-daemon :app:bundleRelease
 ```
 
 Hace falta `android/app/google-services.json` (proyecto Firebase `dotrino-app`, app
-`com.dotrino.app`; gitignoreado) para el push. `keystore.properties`: `storeFile`,
-`storePassword`, `keyAlias`, `keyPassword`. Los
-instaladores llevan la versión en el nombre (`dotrino-app-<ver>.apk`).
+`com.dotrino.app`; gitignoreado) para el push.
+
+**La llave de subida a Play no está en ningún archivo.** `dotrino-env` la entrega por el
+entorno (`ANDROID_UPLOAD_KEYSTORE_B64`, `_STORE_PASSWORD`, `_KEY_ALIAS`, `_KEY_PASSWORD`),
+Gradle la escribe en `$XDG_RUNTIME_DIR` (memoria) y se borra al terminar. Sin esas variables
+el release sale sin firmar. Es la llave de *subida*: con Play App Signing la que firma lo que
+se instala la guarda Google, y la de subida se puede cambiar si se pierde.
+
+Los instaladores llevan la versión en el nombre (`dotrino-app-<ver>.apk` / `.aab`).
 
 MIT.

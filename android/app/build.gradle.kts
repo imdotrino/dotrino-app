@@ -1,4 +1,5 @@
-import java.util.Properties
+import java.io.File
+import java.util.Base64
 
 plugins {
     id("com.android.application")
@@ -6,10 +7,31 @@ plugins {
     id("com.google.gms.google-services") // push nativo (FCM): necesita app/google-services.json (gitignoreado)
 }
 
-// Firma de release: `keystore.properties` (gitignoreado) con storeFile/storePassword/keyAlias/keyPassword.
-val keystoreProps = Properties().apply {
-    val f = rootProject.file("keystore.properties")
-    if (f.exists()) f.inputStream().use { load(it) }
+// FIRMA DE RELEASE (la llave de SUBIDA a Google Play): viene de la bóveda, nunca de un archivo
+// del repo ni de un `.env`.
+//
+//   dotrino-env run --ns claude -- ./gradlew --no-daemon :app:bundleRelease
+//
+// `dotrino-env` pone en el entorno ANDROID_UPLOAD_KEYSTORE_B64 / _STORE_PASSWORD / _KEY_ALIAS /
+// _KEY_PASSWORD (cajón `claude`, con aprobación en el teléfono). El .jks se escribe en
+// $XDG_RUNTIME_DIR —memoria, no disco— y se borra al salir la JVM; `--no-daemon` hace que esa
+// JVM sea la de ESTA compilación y no un daemon que se queda vivo con la ruta apuntada.
+//
+// Sin esas variables el release sale SIN firmar (y así lo dice Gradle): no hay otra llave de
+// repuesto a la que caer.
+val uploadKey: Map<String, String>? = run {
+    val b64 = System.getenv("ANDROID_UPLOAD_KEYSTORE_B64") ?: return@run null
+    val dir = System.getenv("XDG_RUNTIME_DIR") ?: error("XDG_RUNTIME_DIR is not set: refusing to write the upload key to disk")
+    val f = File(dir, "dotrino-upload-${ProcessHandle.current().pid()}.jks")
+    f.writeBytes(Base64.getDecoder().decode(b64))
+    f.setReadable(false, false); f.setReadable(true, true)
+    f.deleteOnExit()
+    mapOf(
+        "storeFile" to f.absolutePath,
+        "storePassword" to (System.getenv("ANDROID_UPLOAD_STORE_PASSWORD") ?: error("ANDROID_UPLOAD_STORE_PASSWORD missing")),
+        "keyAlias" to (System.getenv("ANDROID_UPLOAD_KEY_ALIAS") ?: error("ANDROID_UPLOAD_KEY_ALIAS missing")),
+        "keyPassword" to (System.getenv("ANDROID_UPLOAD_KEY_PASSWORD") ?: error("ANDROID_UPLOAD_KEY_PASSWORD missing")),
+    )
 }
 
 android {
@@ -25,12 +47,12 @@ android {
     }
 
     signingConfigs {
-        if (keystoreProps.isNotEmpty()) {
+        if (uploadKey != null) {
             create("release") {
-                storeFile = rootProject.file(keystoreProps["storeFile"] as String)
-                storePassword = keystoreProps["storePassword"] as String
-                keyAlias = keystoreProps["keyAlias"] as String
-                keyPassword = keystoreProps["keyPassword"] as String
+                storeFile = file(uploadKey.getValue("storeFile"))
+                storePassword = uploadKey.getValue("storePassword")
+                keyAlias = uploadKey.getValue("keyAlias")
+                keyPassword = uploadKey.getValue("keyPassword")
             }
         }
     }
@@ -38,7 +60,7 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = false
-            if (keystoreProps.isNotEmpty()) signingConfig = signingConfigs.getByName("release")
+            if (uploadKey != null) signingConfig = signingConfigs.getByName("release")
         }
     }
     compileOptions {
