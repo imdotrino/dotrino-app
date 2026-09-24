@@ -121,7 +121,8 @@ class MainActivity : AppCompatActivity() {
         nav.setOnItemSelectedListener { item -> onTab(item.itemId); true }
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                if (approvals.visible) { approvals.hide(); return }
+                // Volver desde Pedidos enseña la página que había debajo: la pestaña marcada la sigue.
+                if (approvals.visible) { approvals.hide(); web.url?.let { syncNav(it) }; return }
                 if (web.canGoBack()) web.goBack() else { isEnabled = false; onBackPressedDispatcher.onBackPressed() }
             }
         })
