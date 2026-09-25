@@ -39,7 +39,7 @@
     <string name="no_accounts">Este teléfono todavía no aprueba en ninguna cuenta. Añade una con la invitación de tu bóveda.</string>
     <string name="add_account">Añadir cuenta</string>
     <string name="remove_account">Quitar de este teléfono</string>
-    <string name="remove_confirm">¿Quitar %1$s de este teléfono? Sus llaves se borran de aquí. En la bóveda sigue apareciendo hasta que lo quites allí.</string>
+    <string name="remove_confirm">¿Quitar %1$s de este teléfono? Su llave se borra de aquí, y con ella ese perfil deja de funcionar en la app. En la bóveda sigue apareciendo hasta que lo quites allí.</string>
     <string name="cancel">Cancelar</string>
     <string name="open_web">Ver los pedidos en la web</string>
     <string name="req_update">Tu bóveda quiere actualizarse a la %1$s</string>

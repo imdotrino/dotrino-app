@@ -39,7 +39,7 @@
     <string name="no_accounts">This phone does not approve for any account yet. Add one with your vault\'s invitation.</string>
     <string name="add_account">Add account</string>
     <string name="remove_account">Remove from this phone</string>
-    <string name="remove_confirm">Remove %1$s from this phone? Its keys are deleted here. The vault keeps listing it until you remove it there.</string>
+    <string name="remove_confirm">Remove %1$s from this phone? Its key is deleted here, and that profile stops working in the app. The vault keeps listing it until you remove it there.</string>
     <string name="cancel">Cancel</string>
     <string name="open_web">See the requests on the web</string>
     <string name="req_update">Your vault wants to update to %1$s</string>

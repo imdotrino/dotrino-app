@@ -23,11 +23,13 @@ no extraíbles), y es un aparato más del acta de esa cuenta con `+aprueba`.
 - **Qué pide:** «pide tus claves de…» con el comando y la carpeta, o «quiere guardar
   variables en…» con los nombres. Los dos llegan sellados a la llave del teléfono y se abren
   aquí.
-- **Alta:** Pedidos → *Añadir cuenta* abre `vault.dotrino.com/d?native=1`. Ahí se pega o
-  escanea la invitación de la bóveda y se teclea el código en la bóveda, como siempre.
-  Después, en la bóveda: `dotrino-vault caps <ID> +aprueba`. El puente de alta
-  (`DotrinoNativeKeys`) solo lo ve esa página (se filtra por origen), y la llave solo firma
-  su propio `enroll`.
+- **Una llave por cuenta (app ≥ 0.3.0, identity ≥ 0.103.0):** la identidad del WebView
+  (iframe `id.dotrino.com`) crea sus llaves en el Keystore, por el puente
+  `DotrinoIdentityKeys` (`IdentityKeysBridge.kt`, lo ve SOLO ese origen). Es la misma llave
+  que aprueba aquí: el teléfono es un solo aparato del acta, con su perfil y sus pedidos.
+- **Alta:** Pedidos → *Añadir cuenta* abre `vault.dotrino.com/d`, el emparejamiento de
+  siempre. Al terminar, la identidad le pasa la cuenta a la app (`save`) y aparece aquí.
+  Después, en la bóveda: `dotrino-vault caps <ID> +aprueba`.
 - **Quitar** una cuenta del teléfono: pulsación larga sobre su nombre. Sus llaves se borran
   aquí; en la bóveda se quita como cualquier aparato.
 

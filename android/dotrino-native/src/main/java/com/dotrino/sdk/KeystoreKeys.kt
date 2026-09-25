@@ -64,10 +64,13 @@ class KeystoreKeys private constructor(private val id: String) : DeviceKeys {
     override val publickey: String by lazy { Crypto.jwkOf(pub(signAlias(id))) }
     override val encPub: String by lazy { Crypto.jwkOf(pub(encAlias(id))) }
 
-    override fun sign(text: String): String {
+    override fun sign(text: String): String = signBytes(text.toByteArray(Charsets.UTF_8))
+
+    /** Signs raw bytes (what the identity of the WebView asks for) → P1363 (r‖s) in base64. */
+    fun signBytes(bytes: ByteArray): String {
         val s = Signature.getInstance("SHA256withECDSA")
         s.initSign(priv(signAlias(id)))
-        s.update(text.toByteArray(Charsets.UTF_8))
+        s.update(bytes)
         return Crypto.b64(Crypto.derToP1363(s.sign()))
     }
 

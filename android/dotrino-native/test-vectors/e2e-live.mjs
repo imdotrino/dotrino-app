@@ -4,7 +4,7 @@
 //   node dotrino-native/test-vectors/e2e-live.mjs <dir> [wss://proxy.dotrino.com]
 //
 // Por cada cuenta (A y B) escribe en <dir>:
-//   invite-<A|B>.txt   el enlace para abrir en la app (`/d?native=1#v=…`)
+//   invite-<A|B>.txt   el enlace para abrir en la app (`/d#v=…`)
 // y espera en <dir>:
 //   code-<A|B>.txt     los seis dígitos que enseña el teléfono → la bóveda los aprueba
 // Cuando el teléfono entra, le concede `aprueba` y deja un pedido de escritura pendiente.
@@ -41,7 +41,7 @@ async function account (name) {
   const vault = await startVault({ dir: tmp(`live-${name}-`), proxyUrl, log: process.env.VAULT_LOG ? console.error : () => {} })
   const inv = await vault.startPairing({ scope: ['vault:sign'], label: 'phone', ttlMs: 15 * 60_000, account: `Prueba ${name}` })
   // `startPairing` devuelve el objeto del QR; el enlace es el mismo que imprime la bóveda.
-  fs.writeFileSync(path.join(dir, `invite-${name}.txt`), inviteUrl(inv.qr).replace('/d#', '/d?native=1#'))
+  fs.writeFileSync(path.join(dir, `invite-${name}.txt`), inviteUrl(inv.qr))
   console.log(name, 'invite written')
 
   const codeFile = path.join(dir, `code-${name}.txt`)

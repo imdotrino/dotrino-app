@@ -32,5 +32,5 @@ DOTRINO_E2E=/tmp/e2e.json ./gradlew :dotrino-native:testDebugUnitTest
 ```
 
 `test-vectors/e2e-live.mjs` es para probar la app a mano: dos bóvedas de usar y tirar en el
-proxio de producción, con invitaciones `?native=1` y disparadores para crear pedidos (ver su
+proxio de producción, con invitaciones de `/d` y disparadores para crear pedidos (ver su
 cabecera).

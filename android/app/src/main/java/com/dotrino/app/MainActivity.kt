@@ -56,8 +56,12 @@ class MainActivity : AppCompatActivity() {
         const val APPROVALS = "https://vault.dotrino.com/approvals#ring"
         /** Hosts que se navegan DENTRO de la app; el resto sale al navegador. */
         val INSIDE = Regex("""^([a-z0-9-]+\.)*dotrino\.com$""")
-        /** Donde se da de alta una cuenta en nativo: la consola, con la llave del Keystore. */
-        const val ADD_NATIVE = "https://vault.dotrino.com/d?native=1"
+        /**
+         * Donde se conecta una cuenta: el emparejamiento normal de la consola. Dentro de la app
+         * la identidad crea su llave en el Keystore (IdentityKeysBridge), así que esa misma
+         * llave tiene el perfil y aprueba en Pedidos: no hay un alta «nativa» aparte.
+         */
+        const val ADD_ACCOUNT = "https://vault.dotrino.com/d"
         /** La Activity viva, para que el servicio de push le avise de un token nuevo. */
         var current: MainActivity? = null
     }
@@ -83,7 +87,7 @@ class MainActivity : AppCompatActivity() {
 
     /** Token nuevo de FCM → la página lo registra bajo la llave del aparato, y cada cuenta nativa también. */
     fun pushTokenChanged(token: String) {
-        NativeKeysBridge.registerAll(this, token)
+        IdentityKeysBridge.registerAll(this, token)
         runOnUiThread {
             val js = "window.dispatchEvent(new CustomEvent('dotrino-native-push-token',{detail:{kind:'fcm',token:'" + token.replace("'", "") + "'}}))"
             web.evaluateJavascript(js, null)
@@ -116,7 +120,7 @@ class MainActivity : AppCompatActivity() {
 
         setupWebView()
         approvals = ApprovalsScreen(this, findViewById(R.id.approvals), findViewById(R.id.approvalsList),
-            onAddAccount = { approvals.hide(); web.loadUrl(ADD_NATIVE) },
+            onAddAccount = { approvals.hide(); web.loadUrl(ADD_ACCOUNT) },
             onOpenWeb = { approvals.hide(); web.loadUrl(APPROVALS) })
         nav.setOnItemSelectedListener { item -> onTab(item.itemId); true }
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
@@ -204,8 +208,9 @@ class MainActivity : AppCompatActivity() {
         CookieManager.getInstance().setAcceptThirdPartyCookies(web, true)
         // Puente nativo: solo lo ven las páginas del ecosistema (el WebView no navega fuera).
         web.addJavascriptInterface(NativeBridge(), "DotrinoNative")
-        // El alta NATIVA de una cuenta: solo la ve la consola de la bóveda (se filtra por origen).
-        NativeKeysBridge.install(web, this)
+        // Las llaves de la identidad (iframe id.dotrino.com) viven en el Keystore: una sola llave
+        // por cuenta, la misma que aprueba en Pedidos. Solo lo ve ese origen.
+        IdentityKeysBridge.install(web, this)
 
         web.webViewClient = object : WebViewClient() {
             override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
