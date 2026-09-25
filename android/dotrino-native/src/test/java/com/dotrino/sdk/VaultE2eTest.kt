@@ -83,4 +83,30 @@ class VaultE2eTest {
         assertTrue(vc.approvals().none { it.id == p.id })
         conn.close()
     }
+
+    /**
+     * A phone the owner has not given `+aprueba` gets a paper without `vault:approve`. That is
+     * not a broken paper: it must come out as NO_APPROVE, which the screen turns into «this
+     * phone does not approve in this account yet: dotrino-vault caps <ID> +aprueba» — not as
+     * «invalid renewed paper: scope», which told the owner nothing (2026-09-25).
+     */
+    @Test fun aPhoneWithoutApproveIsToldSoNotInvalidPaper() = runBlocking {
+        val path = System.getenv("DOTRINO_E2E")
+        assumeTrue("DOTRINO_E2E not set: start test-vectors/e2e-vault.mjs to run this", path != null && File(path).exists())
+        val f = Json.parseToJsonElement(File(path!!).readText()).jsonObject
+        val n = f["noApprove"]!!.jsonObject
+        val keys = SoftKeys(n["privateJwk"]!!.jsonObject, n["encPrivateJwk"]!!.jsonObject)
+        val cert = n["cert"]!!.jsonObject
+        val k = object : DeviceKeys by keys { override val publickey = cert["sub"]!!.jsonPrimitive.content }
+        val account = Account(id = "e2e-2", name = "E2E", vault = f["vault"]!!.jsonPrimitive.content,
+            proxy = f["proxyUrl"]!!.jsonPrimitive.content, cert = cert, deviceId = n["deviceId"]!!.jsonPrimitive.content)
+        val conn = ProxyConnection(account.proxy)
+        conn.connect()
+        conn.identify(k)
+        val vc = VaultClient(account, k, conn) { }
+        val e = try { vc.approvals(); null } catch (x: VaultError) { x }
+        assertTrue("it must fail: this phone cannot approve", e != null)
+        assertEquals(VaultClient.NO_APPROVE, e!!.code)
+        conn.close()
+    }
 }

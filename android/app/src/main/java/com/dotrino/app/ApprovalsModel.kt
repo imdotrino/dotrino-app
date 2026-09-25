@@ -194,7 +194,7 @@ class ApprovalsModel(context: Context) {
      * network said it: it is what someone will paste in an issue.
      */
     private fun messageOf(e: Exception): String = when {
-        e is VaultError && e.code == "acta" -> CANNOT_APPROVE
+        e is VaultError && (e.code == "acta" || e.code == VaultClient.NO_APPROVE) -> CANNOT_APPROVE
         e is VaultError && e.code == "vault-no-reply" -> NO_REPLY
         else -> e.message ?: e.javaClass.simpleName
     }

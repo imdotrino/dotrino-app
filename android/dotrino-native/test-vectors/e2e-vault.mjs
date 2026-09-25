@@ -54,6 +54,19 @@ const enrolled = await enrollDevice({
 // Aprueba: se le concede DESPUÉS de enrolar, como en la vida real. Su papel no lo lleva.
 await vault.setCaps(dev.publickey, ['sign', 'approve'])
 
+// Otro teléfono al que el dueño NO le ha dado `+aprueba`: el caso del 2026-09-25, que en
+// pantalla salía como «invalid renewed paper: scope» y no decía qué hacer.
+const dev2 = await makeDeviceKey({ label: 'phone-no-approve' })
+const enc2 = await makeDeviceEncKey()
+const inv2 = await vault.startPairing({ scope: ['vault:sign'], label: 'phone-no-approve', ttlMs: 120_000, account: 'Cuenta E2E' })
+const priv2 = await crypto.subtle.importKey('jwk', dev2.privateJwk, { name: 'ECDSA', namedCurve: 'P-256' }, false, ['sign'])
+const enrolled2 = await enrollDevice({
+  qr: typeof inv2.qr === 'string' ? parseInvite(inv2.qr) : inv2.qr,
+  device: { publickey: dev2.publickey, sign: async (t) => Buffer.from(await crypto.subtle.sign({ name: 'ECDSA', hash: 'SHA-256' }, priv2, new TextEncoder().encode(t))).toString('base64') },
+  encPub: enc2.encPublickey, label: 'phone-no-approve',
+  onChallenge: ({ code }) => { vault.approveDevice(code).catch((e) => console.error('approve failed', e)) },
+})
+
 // Una consola sin `unattended` guarda una variable: queda pendiente de aprobación.
 const consola = await makeDeviceKey()
 await vault.identity.admitMember({ pub: consola.publickey, label: 'consola', caps: ['sign', 'admin'] })
@@ -66,6 +79,7 @@ if (!r.pending) throw new Error('the write did not stay pending')
 fs.writeFileSync(out, JSON.stringify({
   proxyUrl, vault: enrolled.master, cert: enrolled.cert, deviceId: enrolled.deviceId,
   privateJwk: dev.privateJwk, encPrivateJwk: enc.encPrivateJwk, pending: r.pending, ns, account: enrolled.account,
+  noApprove: { cert: enrolled2.cert, deviceId: enrolled2.deviceId, privateJwk: dev2.privateJwk, encPrivateJwk: enc2.encPrivateJwk },
 }))
 console.log('ready', out)
 

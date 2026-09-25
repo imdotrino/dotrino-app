@@ -74,6 +74,8 @@ class VaultClient(
         const val ERROR = "vault.error"
         const val ADMIN_EVENT = "vault.admin.event"
         const val SCOPE_APPROVE = "vault:approve"
+        /** The record does not let this key approve (yet): the owner has to give it `+aprueba`. */
+        const val NO_APPROVE = "no-approve"
         private val json = Json { ignoreUnknownKeys = true }
     }
 
@@ -122,6 +124,10 @@ class VaultClient(
         val res = rpc(RENEW, RENEWED, buildJsonObject { put("op", "renew") })
         val cert = res["cert"] as? JsonObject ?: throw VaultError("the vault did not send a paper", "no-cert")
         Delegation.check(cert, account.vault, keys.publickey, SCOPE_APPROVE)?.let {
+            // A good paper without `vault:approve` is not a broken paper: the record simply
+            // does not let this key approve yet (`+aprueba` is missing). Said as such, so the
+            // screen can tell the owner what to do instead of «invalid renewed paper: scope».
+            if (it == "scope") throw VaultError("the record does not let this device approve", NO_APPROVE)
             throw VaultError("invalid renewed paper: $it", it)
         }
         account = account.copy(cert = cert)
