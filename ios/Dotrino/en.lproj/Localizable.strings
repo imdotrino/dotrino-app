@@ -30,7 +30,7 @@
 "grants_title" = "Approved for now";
 "grant_revoke" = "Remove";
 "grant_sub" = "expires in %1$@ unused · %2$d uses";
-"err_cannot_approve" = "This phone cannot approve for this account yet. In your vault: dotrino-vault caps %1$@ +aprueba";
+"err_cannot_approve" = "No approval permission";
 "err_no_reply" = "The vault does not answer. Is it running?";
 "err_not_connected" = "Not connected to this vault.";
 "warn" = "Approve only if it was you who just asked. If you were not expecting it, deny it.";

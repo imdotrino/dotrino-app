@@ -31,7 +31,7 @@
     <string name="grants_title">Aprobados por ahora</string>
     <string name="grant_revoke">Quitar</string>
     <string name="grant_sub">caduca en %1$s sin usarse · %2$d usos</string>
-    <string name="err_cannot_approve">Este teléfono todavía no aprueba en esta cuenta. En tu bóveda: dotrino-vault caps %1$s +aprueba</string>
+    <string name="err_cannot_approve">Sin permiso de aprobación</string>
     <string name="err_no_reply">La bóveda no contesta. ¿Está encendida?</string>
     <string name="err_not_connected">Sin conexión con esta bóveda.</string>
     <string name="warn">Aprueba solo si eres tú quien acaba de pedirlo. Si no lo esperabas, deniégalo.</string>

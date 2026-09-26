@@ -31,7 +31,7 @@
     <string name="grants_title">Approved for now</string>
     <string name="grant_revoke">Remove</string>
     <string name="grant_sub">expires in %1$s unused · %2$d uses</string>
-    <string name="err_cannot_approve">This phone cannot approve for this account yet. In your vault: dotrino-vault caps %1$s +aprueba</string>
+    <string name="err_cannot_approve">No approval permission</string>
     <string name="err_no_reply">The vault does not answer. Is it running?</string>
     <string name="err_not_connected">Not connected to this vault.</string>
     <string name="warn">Approve only if it was you who just asked. If you were not expecting it, deny it.</string>

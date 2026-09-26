@@ -125,7 +125,7 @@ class ApprovalsScreen(
 
     private fun errorText(st: ApprovalsModel.AccountState): String? = when (val e = st.error) {
         null -> null
-        ApprovalsModel.CANNOT_APPROVE -> s(R.string.err_cannot_approve, st.account.deviceId)
+        ApprovalsModel.CANNOT_APPROVE -> s(R.string.err_cannot_approve)
         ApprovalsModel.NO_REPLY -> s(R.string.err_no_reply)
         ApprovalsModel.NOT_CONNECTED -> s(R.string.err_not_connected)
         else -> e

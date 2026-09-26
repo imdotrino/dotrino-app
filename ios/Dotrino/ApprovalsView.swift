@@ -120,7 +120,7 @@ struct ApprovalsView: View {
     private func errorText(_ st: ApprovalsModel.AccountState) -> String? {
         switch st.error {
         case nil: return nil
-        case ApprovalsModel.cannotApprove?: return L("err_cannot_approve", st.account.deviceId)
+        case ApprovalsModel.cannotApprove?: return L("err_cannot_approve")
         case ApprovalsModel.noReply?: return L("err_no_reply")
         case ApprovalsModel.notConnected?: return L("err_not_connected")
         case let e?: return e
