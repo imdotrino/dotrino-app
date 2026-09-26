@@ -62,6 +62,7 @@ class MainActivity : AppCompatActivity() {
          * llave tiene el perfil y aprueba en Pedidos: no hay un alta «nativa» aparte.
          */
         const val ADD_ACCOUNT = "https://vault.dotrino.com/d"
+        private const val STATE_APPROVALS = "approvalsVisible"
         /** La Activity viva, para que el servicio de push le avise de un token nuevo. */
         var current: MainActivity? = null
     }
@@ -119,9 +120,10 @@ class MainActivity : AppCompatActivity() {
         findViewById<Button>(R.id.retry).setOnClickListener { offline.visibility = View.GONE; web.reload() }
 
         setupWebView()
-        approvals = ApprovalsScreen(this, findViewById(R.id.approvals), findViewById(R.id.approvalsList),
+        approvals = ApprovalsScreen(this, findViewById(R.id.approvalsBox), findViewById(R.id.approvals), findViewById(R.id.approvalsList),
             onAddAccount = { approvals.hide(); web.loadUrl(ADD_ACCOUNT) },
             onOpenWeb = { approvals.hide(); web.loadUrl(APPROVALS) })
+        NativeTopbar(this, findViewById(R.id.topbar)) { u -> approvals.hide(); web.loadUrl(u.toString()); syncNav(u.toString()) }
         nav.setOnItemSelectedListener { item -> onTab(item.itemId); true }
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
@@ -145,6 +147,8 @@ class MainActivity : AppCompatActivity() {
             if (!openIntent(intent)) web.loadUrl(HOME)
         } else {
             web.restoreState(savedInstanceState)
+            // Cambiar el idioma en la barra de Pedidos recrea la actividad: se vuelve a Pedidos.
+            if (savedInstanceState.getBoolean(STATE_APPROVALS)) { selectTab(R.id.nav_approvals); approvals.show() }
         }
     }
 
@@ -192,6 +196,7 @@ class MainActivity : AppCompatActivity() {
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         web.saveState(outState)
+        outState.putBoolean(STATE_APPROVALS, approvals.visible)
     }
 
     private fun setupWebView() {

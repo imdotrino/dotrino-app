@@ -45,4 +45,13 @@
     <string name="req_update">Tu bóveda quiere actualizarse a la %1$s</string>
     <string name="req_update_from">Ahora tiene la %1$s</string>
     <string name="req_update_verified">Se verifica contra su firma antes de instalar.</string>
+    <!-- Barra nativa de Pedidos: mismos textos que <dotrino-support>. -->
+    <string name="support_cta">Apoyar</string>
+    <string name="support_heading">Apoya al proyecto</string>
+    <string name="support_message">Si esta herramienta te resulta útil, puedes dar una pequeña contribución. Las apps del ecosistema Dotrino son gratuitas y autohosteadas. ¡Gracias!</string>
+    <string name="support_donate">Donar</string>
+    <string name="support_discord">Canal de Soporte</string>
+    <string name="support_bug">Reporta un error</string>
+    <string name="support_share">Compartir</string>
+    <string name="support_close">Cerrar</string>
 </resources>

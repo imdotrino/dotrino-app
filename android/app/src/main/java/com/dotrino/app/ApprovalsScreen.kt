@@ -31,6 +31,8 @@ import kotlinx.serialization.json.jsonPrimitive
  */
 class ApprovalsScreen(
     private val activity: AppCompatActivity,
+    /** La pestaña entera: la barra nativa + la lista. */
+    private val box: View,
     private val swipe: SwipeRefreshLayout,
     list: RecyclerView,
     private val onAddAccount: () -> Unit,
@@ -51,17 +53,17 @@ class ApprovalsScreen(
         swipe.setOnRefreshListener { model.refreshAll(); swipe.postDelayed({ swipe.isRefreshing = false }, 600) }
     }
 
-    val visible: Boolean get() = swipe.visibility == View.VISIBLE
+    val visible: Boolean get() = box.visibility == View.VISIBLE
 
     fun show() {
-        swipe.visibility = View.VISIBLE
+        box.visibility = View.VISIBLE
         model.start()
         if (collect == null) collect = activity.lifecycleScope.launch { model.state.collect { adapter.submitList(rowsOf(it)) } }
         ticker.removeCallbacks(tick); ticker.post(tick)
     }
 
     fun hide() {
-        swipe.visibility = View.GONE
+        box.visibility = View.GONE
         stop()
     }
 

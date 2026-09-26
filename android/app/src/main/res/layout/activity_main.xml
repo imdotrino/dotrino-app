@@ -18,19 +18,28 @@
             android:layout_height="match_parent" />
 
         <!-- Pedidos NATIVOS: sin WebView de por medio. Se muestra encima cuando se elige la pestaña. -->
-        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-            android:id="@+id/approvals"
+        <LinearLayout
+            android:id="@+id/approvalsBox"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:orientation="vertical"
             android:background="@color/bg"
             android:visibility="gone">
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/approvalsList"
+            <include android:id="@+id/topbar" layout="@layout/topbar_native" />
+            <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+                android:id="@+id/approvals"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:clipToPadding="false"
-                android:paddingBottom="24dp" />
-        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:background="@color/bg">
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/approvalsList"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:clipToPadding="false"
+                    android:paddingBottom="24dp" />
+            </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+        </LinearLayout>
     </FrameLayout>
 
     <LinearLayout

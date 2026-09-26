@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- La barra de Dotrino en la pantalla NATIVA de Pedidos: lo mismo que <dotrino-topbar>
+     (marca, ES/EN, moneda de apoyo), en nativo. Sin perfil: Pedidos es de todas las cuentas. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:background="@color/card"
+    android:paddingHorizontal="16dp"
+    android:paddingVertical="8dp">
+
+    <LinearLayout
+        android:id="@+id/topbarBrand"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="?attr/selectableItemBackground">
+        <ImageView android:layout_width="28dp" android:layout_height="28dp"
+            android:src="@drawable/brand" android:contentDescription="@null" />
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:layout_marginStart="8dp" android:text="Dotrino"
+            android:textColor="@color/fg" android:textSize="17sp" android:textStyle="bold" />
+    </LinearLayout>
+
+    <!-- Las DOS opciones siempre a la vista, la activa resaltada (CONVENCIONES §9). -->
+    <com.google.android.material.button.MaterialButtonToggleGroup
+        android:id="@+id/topbarLang"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:singleSelection="true"
+        app:selectionRequired="true">
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/langEs" style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="wrap_content" android:layout_height="40dp"
+            android:minWidth="0dp" android:paddingHorizontal="12dp" android:text="ES" />
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/langEn" style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="wrap_content" android:layout_height="40dp"
+            android:minWidth="0dp" android:paddingHorizontal="12dp" android:text="EN" />
+    </com.google.android.material.button.MaterialButtonToggleGroup>
+
+    <ImageButton
+        android:id="@+id/topbarCoin"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:layout_marginStart="10dp"
+        android:padding="4dp"
+        android:scaleType="fitCenter"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:src="@drawable/coin"
+        android:contentDescription="@string/support_cta" />
+</LinearLayout>

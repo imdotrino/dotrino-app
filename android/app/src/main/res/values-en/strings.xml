@@ -45,4 +45,13 @@
     <string name="req_update">Your vault wants to update to %1$s</string>
     <string name="req_update_from">It runs %1$s now</string>
     <string name="req_update_verified">It is checked against its signature before installing.</string>
+    <!-- Barra nativa de Pedidos: mismos textos que <dotrino-support>. -->
+    <string name="support_cta">Support</string>
+    <string name="support_heading">Support the project</string>
+    <string name="support_message">If you find this tool useful, you can make a small contribution. The Dotrino ecosystem apps are free and self-hosted. Thank you!</string>
+    <string name="support_donate">Donate</string>
+    <string name="support_discord">Support channel</string>
+    <string name="support_bug">Report a bug</string>
+    <string name="support_share">Share</string>
+    <string name="support_close">Close</string>
 </resources>
