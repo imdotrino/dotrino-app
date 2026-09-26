@@ -193,6 +193,11 @@ final class MainTabController: UIViewController, WKNavigationDelegate, WKUIDeleg
         web.load(URLRequest(url: url))
     }
 
+    func openApprovalsTab() {
+        select(.approvals)
+        showApprovals()
+    }
+
     private func showApprovals() {
         approvalsBox.isHidden = false
         topbar.loadIfNeeded()

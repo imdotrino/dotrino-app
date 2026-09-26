@@ -15,6 +15,12 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         window = UIWindow(frame: UIScreen.main.bounds)
         window?.rootViewController = MainTabController()
         window?.makeKeyAndVisible()
+        #if DEBUG
+        // Para capturas en el simulador: `simctl launch <sim> com.dotrino.app -approvals` abre Pedidos.
+        if CommandLine.arguments.contains("-approvals") {
+            DispatchQueue.main.async { (self.window?.rootViewController as? MainTabController)?.openApprovalsTab() }
+        }
+        #endif
         return true
     }
 
