@@ -53,8 +53,14 @@ public final class AccountStore: @unchecked Sendable {
         file = dir.appendingPathComponent("dotrino-accounts.bin")
     }
 
+    /// The file's key. A new one is made ONLY when there is no file yet: with a file on disk
+    /// and no key, a fresh key would just make the file unreadable and look like corruption
+    /// (it happened when the signing team changed the Keychain access group).
     private func key() throws -> SymmetricKey {
         if let d = try Keychain.get(Self.keyAlias) { return SymmetricKey(data: d) }
+        if FileManager.default.fileExists(atPath: file.path) {
+            throw CryptoError("the accounts file exists but its key is not in the Keychain")
+        }
         let k = SymmetricKey(size: .bits256)
         try Keychain.add(Self.keyAlias, k.withUnsafeBytes { Data($0) })
         return k
