@@ -64,12 +64,15 @@ struct ApprovalsView: View {
     @ObservedObject var lang = AppLang.shared
     let onAddAccount: () -> Void
     let onOpenWeb: () -> Void
+    /// Un enlace del ecosistema pulsado en la barra.
+    let onOpen: (URL) -> Void
     @State private var removing: ApprovalsModel.AccountState?
 
     var body: some View {
         TimelineView(.periodic(from: .now, by: 1)) { ctx in
             content(now: Int64(ctx.date.timeIntervalSince1970 * 1000))
         }
+        .safeAreaInset(edge: .top, spacing: 0) { TopBar(onOpen: onOpen) }
         .background(Palette.bg.ignoresSafeArea())
         .alert(item: $removing) { st in
             Alert(title: Text(L("remove_confirm", st.account.name)),

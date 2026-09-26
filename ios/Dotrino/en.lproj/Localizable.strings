@@ -46,3 +46,12 @@
 "req_update_verified" = "It is checked against its signature before installing.";
 "err_accounts_file" = "Could not read this phone's list of accounts (%1$@).";
 "ok" = "OK";
+/* Barra nativa de Pedidos: mismos textos que <dotrino-support>. */
+"support_cta" = "Support";
+"support_heading" = "Support the project";
+"support_message" = "If you find this tool useful, you can make a small contribution. The Dotrino ecosystem apps are free and self-hosted. Thank you!";
+"support_donate" = "Donate";
+"support_discord" = "Support channel";
+"support_bug" = "Report a bug";
+"support_share" = "Share";
+"support_close" = "Close";

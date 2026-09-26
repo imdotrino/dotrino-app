@@ -1,3 +1,4 @@
+import Combine
 import os
 import SwiftUI
 import UIKit
@@ -33,11 +34,9 @@ final class MainTabController: UIViewController, WKNavigationDelegate, WKUIDeleg
     private let offline = UIStackView()
     private let model = ApprovalsModel()
     private var approvalsHost: UIHostingController<ApprovalsView>!
-    /// Pedidos = la barra de Dotrino + la lista nativa, en un contenedor.
+    /// Pedidos: barra de Dotrino nativa + la lista (ApprovalsView), en un contenedor.
     private let approvalsBox = UIView()
-    private var topbar: TopbarView!
-    private var barHeight: NSLayoutConstraint!
-    private var listTop: NSLayoutConstraint!
+    private var langSub: AnyCancellable?
     private lazy var items: [UITabBarItem] = [
         UITabBarItem(title: L("tab_home"), image: UIImage(systemName: "house"), tag: Tab.home.rawValue),
         UITabBarItem(title: L("tab_profile"), image: UIImage(systemName: "person.crop.circle"), tag: Tab.profile.rawValue),
@@ -82,35 +81,22 @@ final class MainTabController: UIViewController, WKNavigationDelegate, WKUIDeleg
         approvalsHost = UIHostingController(rootView: ApprovalsView(
             model: model,
             onAddAccount: { [weak self] in self?.hideApprovals(); self?.open(url: Self.addAccount) },
-            onOpenWeb: { [weak self] in self?.hideApprovals(); self?.open(url: Self.approvalsWeb) }))
+            onOpenWeb: { [weak self] in self?.hideApprovals(); self?.open(url: Self.approvalsWeb) },
+            onOpen: { [weak self] url in self?.hideApprovals(); self?.open(url: url) }))
         approvalsHost.view.backgroundColor = bg
         approvalsBox.backgroundColor = bg
         approvalsBox.isHidden = true
         addChild(approvalsHost)
-        topbar = TopbarView(pool: web.configuration.processPool)
-        topbar.onOpen = { [weak self] url in self?.hideApprovals(); self?.open(url: url) }
-        topbar.onLang = { [weak self] l in AppLang.shared.set(l); self?.retitleTabs() }
-        topbar.onHeight = { [weak self] h, open in
-            guard let self else { return }
-            self.listTop.constant = h
-            // Abierta la ventana de la moneda, la barra ocupa toda la pestaña; cerrada, lo suyo.
-            self.barHeight.constant = open ? self.approvalsBox.bounds.height : h
-        }
-        for v in [approvalsHost.view!, topbar!] {
-            v.translatesAutoresizingMaskIntoConstraints = false
-            approvalsBox.addSubview(v)
-        }
-        barHeight = topbar.heightAnchor.constraint(equalToConstant: 64)
-        listTop = approvalsHost.view.topAnchor.constraint(equalTo: approvalsBox.topAnchor, constant: 64)
+        approvalsHost.view.translatesAutoresizingMaskIntoConstraints = false
+        approvalsBox.addSubview(approvalsHost.view)
         NSLayoutConstraint.activate([
-            barHeight, listTop,
-            topbar.topAnchor.constraint(equalTo: approvalsBox.topAnchor),
-            topbar.leadingAnchor.constraint(equalTo: approvalsBox.leadingAnchor),
-            topbar.trailingAnchor.constraint(equalTo: approvalsBox.trailingAnchor),
+            approvalsHost.view.topAnchor.constraint(equalTo: approvalsBox.topAnchor),
+            approvalsHost.view.bottomAnchor.constraint(equalTo: approvalsBox.bottomAnchor),
             approvalsHost.view.leadingAnchor.constraint(equalTo: approvalsBox.leadingAnchor),
             approvalsHost.view.trailingAnchor.constraint(equalTo: approvalsBox.trailingAnchor),
-            approvalsHost.view.bottomAnchor.constraint(equalTo: approvalsBox.bottomAnchor),
         ])
+        // Los títulos de las pestañas siguen al idioma elegido en la barra.
+        langSub = AppLang.shared.$code.dropFirst().receive(on: DispatchQueue.main).sink { [weak self] _ in self?.retitleTabs() }
 
         tabs.items = items
         tabs.delegate = self
@@ -201,7 +187,6 @@ final class MainTabController: UIViewController, WKNavigationDelegate, WKUIDeleg
 
     private func showApprovals() {
         approvalsBox.isHidden = false
-        topbar.loadIfNeeded()
         offline.isHidden = true
         model.start()
     }
