@@ -1,4 +1,3 @@
-import CryptoKit
 import Foundation
 
 /// An account this phone approves for natively: which vault, through which proxy, and the
@@ -35,66 +34,37 @@ public struct Account: Equatable, Sendable {
     }
 }
 
-/// The accounts this phone approves for, on disk. Nothing secret is stored (vault key, proxy,
-/// paper, name), but the list of vaults a person belongs to is theirs, so the file is
-/// encrypted with an AES key kept in the Keychain, only on this device.
-///
-/// A file that exists but does not open is an ERROR, not an empty list: treating it as
-/// «no accounts» would silently make the phone stop approving.
+/// The accounts this phone approves for, on disk, in a [SealedFile]. Nothing secret is
+/// stored (vault key, proxy, paper, name), but the list of vaults a person belongs to is theirs.
 public final class AccountStore: @unchecked Sendable {
     public static let shared = AccountStore()
-    private static let keyAlias = "dotrino.accounts"
-    private let lock = NSLock()
-    private let file: URL
+    private let sealed = SealedFile(name: "dotrino-accounts.bin", keyAlias: "dotrino.accounts")
 
-    public init() {
-        let dir = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-        file = dir.appendingPathComponent("dotrino-accounts.bin")
-    }
-
-    /// The file's key. A new one is made ONLY when there is no file yet: with a file on disk
-    /// and no key, a fresh key would just make the file unreadable and look like corruption
-    /// (it happened when the signing team changed the Keychain access group).
-    private func key() throws -> SymmetricKey {
-        if let d = try Keychain.get(Self.keyAlias) { return SymmetricKey(data: d) }
-        if FileManager.default.fileExists(atPath: file.path) {
-            throw CryptoError("the accounts file exists but its key is not in the Keychain")
-        }
-        let k = SymmetricKey(size: .bits256)
-        try Keychain.add(Self.keyAlias, k.withUnsafeBytes { Data($0) })
-        return k
-    }
+    public init() {}
 
     public func list() throws -> [Account] {
-        lock.lock(); defer { lock.unlock() }
+        sealed.lock.lock(); defer { sealed.lock.unlock() }
         return try read()
     }
 
     private func read() throws -> [Account] {
-        guard FileManager.default.fileExists(atPath: file.path) else { return [] }
-        let raw = try Data(contentsOf: file)
-        guard raw.count > 28 else { throw CryptoError("accounts file is truncated") }
-        let plain = try AES.GCM.open(AES.GCM.SealedBox(combined: raw), using: key())
+        guard let plain = try sealed.read() else { return [] }
         guard let arr = try JSON.parse(plain).array else { throw CryptoError("accounts file is not a list") }
         return try arr.map(Account.init(json:))
     }
 
     private func write(_ accounts: [Account]) throws {
-        let body = Data(JSON.array(accounts.map(\.json)).text.utf8)
-        guard let sealed = try AES.GCM.seal(body, using: key()).combined else { throw CryptoError("could not seal the accounts file") }
-        // Atomic: a half-written file must never replace a good one.
-        try sealed.write(to: file, options: [.atomic, .completeFileProtectionUntilFirstUserAuthentication])
+        try sealed.write(Data(JSON.array(accounts.map(\.json)).text.utf8))
     }
 
     /// Adds or replaces the account with the same [Account.id].
     public func save(_ a: Account) throws {
-        lock.lock(); defer { lock.unlock() }
+        sealed.lock.lock(); defer { sealed.lock.unlock() }
         try write(read().filter { $0.id != a.id } + [a])
     }
 
     public func remove(_ id: String) throws {
-        lock.lock(); defer { lock.unlock() }
+        sealed.lock.lock(); defer { sealed.lock.unlock() }
         try write(read().filter { $0.id != id })
         EnclaveKeys.delete(id)
     }

@@ -44,3 +44,13 @@ final class KeysAndStoreTests: XCTestCase {
         XCTAssertFalse(EnclaveKeys.exists(id), "removing the account deletes its keys")
     }
 }
+
+final class IdentityStoreTests: XCTestCase {
+    func testWhatOnePageSavesTheNextSees() throws {
+        let k = "kv:test-\(UUID().uuidString)"
+        try IdentityStore.shared.set(k, #"["p1"]"#)
+        XCTAssertEqual(try IdentityStore().all()[k], #"["p1"]"#, "a fresh instance reads it from the sealed file")
+        try IdentityStore.shared.remove(k)
+        XCTAssertNil(try IdentityStore().all()[k])
+    }
+}

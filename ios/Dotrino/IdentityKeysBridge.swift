@@ -17,6 +17,9 @@ import WebKit
 /// identity itself: it can already sign as you with its own keys, so the bridge gives it
 /// nothing it did not have.
 ///
+/// It also HOLDS the identity's storage (`storeLoad` / `storeSet` / `storeRemove`): WebKit
+/// keeps this iframe's storage apart per page, and the profile has to be the same on all.
+///
 /// Protocol: the page posts `{ id, method, params }` as JSON; the answer comes back as
 /// `{ id, result }` or `{ id, error, code }`. The shim below gives the page the same
 /// `{ postMessage, onmessage }` port Android's `addWebMessageListener` gives.
@@ -36,6 +39,8 @@ final class IdentityKeysBridge: NSObject, WKScriptMessageHandlerWithReply {
       var h = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.\(name)
       if (!h) return
       var port = {
+        // La app GUARDA la identidad: una para todas las páginas (dotrino-identity/vault/nativeStore.js).
+        storage: true,
         onmessage: null,
         postMessage: function (s) {
           h.postMessage(s).then(function (r) {
@@ -121,6 +126,16 @@ final class IdentityKeysBridge: NSObject, WKScriptMessageHandlerWithReply {
                                   cert: cert, deviceId: try Delegation.keyLabel(k.publickey))
             try AccountStore.shared.save(account)
             return ["deviceId": .string(account.deviceId)]
+        // EL ALMACÉN DE LA IDENTIDAD: uno para todas las páginas (IdentityStore).
+        case "storeLoad":
+            return ["items": .object(try IdentityStore.shared.all().mapValues { .string($0) })]
+        case "storeSet":
+            guard let v = p["v"]?.string else { throw BridgeError(description: "missing v", code: "native-bad-request") }
+            try IdentityStore.shared.set(str(p, "k"), v)
+            return ["ok": true]
+        case "storeRemove":
+            try IdentityStore.shared.remove(str(p, "k"))
+            return ["ok": true]
         case "remove":
             // The identity removed that profile: its key and its native account go with it.
             try AccountStore.shared.remove(str(p, "kid"))
