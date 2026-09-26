@@ -72,7 +72,7 @@ android {
 }
 
 dependencies {
-    implementation(project(":dotrino-native"))
+    implementation("com.dotrino:dotrino-native")   // includeBuild de ../native/android
     implementation("androidx.appcompat:appcompat:1.7.0")
     implementation("androidx.recyclerview:recyclerview:1.3.2")
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")

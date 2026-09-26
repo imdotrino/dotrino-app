@@ -18,24 +18,18 @@ settings:
     CODE_SIGN_STYLE: Automatic
     MARKETING_VERSION: 0.3.0
     CURRENT_PROJECT_VERSION: 1
-targets:
-  # La cripto y el cable: puerto de `android/dotrino-native` (mismos formatos, mismas pruebas).
+packages:
+  # La librería nativa del ecosistema (repo dotrino-native): cripto, cable, cuentas, almacén.
   DotrinoNative:
-    type: framework
-    platform: iOS
-    sources: [DotrinoNative]
-    settings:
-      base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.dotrino.native
-        GENERATE_INFOPLIST_FILE: YES
-        SKIP_INSTALL: YES
-
+    url: https://github.com/imdotrino/dotrino-native
+    from: 0.1.0
+targets:
   Dotrino:
     type: application
     platform: iOS
     sources: [Dotrino]
     dependencies:
-      - target: DotrinoNative
+      - package: DotrinoNative
     info:
       path: Dotrino/Info.plist
       properties:
@@ -53,21 +47,17 @@ targets:
         TARGETED_DEVICE_FAMILY: "1,2"
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
 
-  DotrinoNativeTests:
+  # Lo que necesita un llavero de verdad (llaves, cuentas, almacén): alojado en la app.
+  DotrinoTests:
     type: bundle.unit-test
     platform: iOS
-    sources:
-      - DotrinoNativeTests
-      # Los MISMOS vectores de oro que prueba Android: un solo archivo, sacado del pilar JS.
-      - path: ../android/dotrino-native/src/test/resources/vectors.json
-        buildPhase: resources
+    sources: [DotrinoTests]
     dependencies:
       - target: Dotrino
-      - target: DotrinoNative
+      - package: DotrinoNative
     settings:
       base:
         GENERATE_INFOPLIST_FILE: YES
-        # Alojadas en la app: es lo que les da un llavero en el simulador.
         TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Dotrino.app/Dotrino"
         BUNDLE_LOADER: "$(TEST_HOST)"
 
@@ -77,4 +67,4 @@ schemes:
       targets:
         Dotrino: all
     test:
-      targets: [DotrinoNativeTests]
+      targets: [DotrinoTests]

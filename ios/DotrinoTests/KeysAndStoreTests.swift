@@ -1,5 +1,5 @@
 import XCTest
-@testable import DotrinoNative
+import DotrinoNative
 
 /// The keys and the accounts file against the real Keychain (these run hosted in the app,
 /// which is what gives them one). In the simulator the keys are software ones — the enclave

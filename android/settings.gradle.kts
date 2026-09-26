@@ -6,4 +6,6 @@ dependencyResolutionManagement {
     repositories { google(); mavenCentral() }
 }
 rootProject.name = "dotrino-app"
-include(":app", ":dotrino-native")
+include(":app")
+// La librería nativa del ecosistema: el repo dotrino-native, como submódulo en ../native.
+includeBuild("../native/android")
