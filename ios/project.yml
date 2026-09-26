@@ -22,7 +22,7 @@ packages:
   # La librería nativa del ecosistema (repo dotrino-native): cripto, cable, cuentas, almacén.
   DotrinoNative:
     url: https://github.com/imdotrino/dotrino-native
-    from: 0.1.0
+    from: 0.2.0
 targets:
   Dotrino:
     type: application
@@ -41,6 +41,13 @@ targets:
         NSCameraUsageDescription: "Para escanear el código de emparejamiento de tu bóveda."
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait, UIInterfaceOrientationLandscapeLeft, UIInterfaceOrientationLandscapeRight]
         UIUserInterfaceStyle: Dark
+    # EL PERFIL SE COMPARTE entre las apps de Dotrino del teléfono (dotrino-native/docs/DISENO.md
+    # §2.1): mismas llaves (Keychain Access Group) y mismos archivos (App Group).
+    entitlements:
+      path: Dotrino/Dotrino.entitlements
+      properties:
+        keychain-access-groups: ["$(AppIdentifierPrefix)com.dotrino.shared"]
+        com.apple.security.application-groups: [group.com.dotrino]
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.dotrino.app

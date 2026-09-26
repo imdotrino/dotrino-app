@@ -1,3 +1,4 @@
+import DotrinoNative
 import UIKit
 
 /// La app de Dotrino en iOS: la misma cáscara que en Android — las páginas del ecosistema
@@ -12,6 +13,13 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
+        // Antes que nada: las llaves y el almacén van a los grupos del equipo, los mismos para
+        // todas las apps de Dotrino del teléfono. Sin los grupos en la firma no se sigue.
+        do {
+            try SharedStorage.share(keychainAccessGroup: "P7G853375S.com.dotrino.shared", appGroup: "group.com.dotrino")
+        } catch {
+            preconditionFailure("shared storage: \(error)")
+        }
         window = UIWindow(frame: UIScreen.main.bounds)
         window?.rootViewController = MainTabController()
         window?.makeKeyAndVisible()
