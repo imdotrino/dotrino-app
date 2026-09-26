@@ -11,3 +11,8 @@ local.properties
 .idea/
 *.iml
 .claude/
+# iOS: el proyecto lo genera XcodeGen en la Mac
+ios/Dotrino.xcodeproj/
+ios/build/
+DerivedData/
+xcuserdata/

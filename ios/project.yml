@@ -1,33 +1,78 @@
-# XcodeGen (brew install xcodegen) → `xcodegen generate` crea Dotrino.xcodeproj en la Mac.
+# XcodeGen → `xcodegen generate` crea Dotrino.xcodeproj en la Mac (el .xcodeproj no se commitea).
+#
+#   cd ios && xcodegen generate
+#   xcodebuild -project Dotrino.xcodeproj -scheme Dotrino -destination 'platform=iOS Simulator,name=iPhone 16' test
+#
+# Sin cuenta de Apple Developer todavía (2026-09-26): solo simulador. Por eso no hay
+# `aps-environment` (push) ni `associated-domains` (enlaces universales): los dos exigen un
+# equipo de firma. Ver el README.
 name: Dotrino
 options:
   bundleIdPrefix: com.dotrino
   deploymentTarget:
     iOS: "16.4"
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    MARKETING_VERSION: 0.3.0
+    CURRENT_PROJECT_VERSION: 1
 targets:
+  # La cripto y el cable: puerto de `android/dotrino-native` (mismos formatos, mismas pruebas).
+  DotrinoNative:
+    type: framework
+    platform: iOS
+    sources: [DotrinoNative]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.dotrino.native
+        GENERATE_INFOPLIST_FILE: YES
+        SKIP_INSTALL: YES
+
   Dotrino:
     type: application
     platform: iOS
     sources: [Dotrino]
+    dependencies:
+      - target: DotrinoNative
     info:
       path: Dotrino/Info.plist
       properties:
         CFBundleDisplayName: Dotrino
-        UILaunchScreen: {}
+        CFBundleDevelopmentRegion: es
+        CFBundleLocalizations: [es, en]
+        UILaunchScreen:
+          UIColorName: ""
         NSCameraUsageDescription: "Para escanear el código de emparejamiento de tu bóveda."
-        UIBackgroundModes: [remote-notification]
-    entitlements:
-      path: Dotrino/Dotrino.entitlements
-      properties:
-        aps-environment: development
-        com.apple.developer.associated-domains:
-          - applinks:dotrino.com
-          - applinks:vault.dotrino.com
-          - applinks:profile.dotrino.com
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait, UIInterfaceOrientationLandscapeLeft, UIInterfaceOrientationLandscapeRight]
+        UIUserInterfaceStyle: Dark
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.dotrino.app
-        MARKETING_VERSION: 0.1.0
-        CURRENT_PROJECT_VERSION: 1
-        SWIFT_VERSION: "5.9"
         TARGETED_DEVICE_FAMILY: "1,2"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+
+  DotrinoNativeTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - DotrinoNativeTests
+      # Los MISMOS vectores de oro que prueba Android: un solo archivo, sacado del pilar JS.
+      - path: ../android/dotrino-native/src/test/resources/vectors.json
+        buildPhase: resources
+    dependencies:
+      - target: Dotrino
+      - target: DotrinoNative
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        # Alojadas en la app: es lo que les da un llavero en el simulador.
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Dotrino.app/Dotrino"
+        BUNDLE_LOADER: "$(TEST_HOST)"
+
+schemes:
+  Dotrino:
+    build:
+      targets:
+        Dotrino: all
+    test:
+      targets: [DotrinoNativeTests]
