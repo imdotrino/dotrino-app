@@ -3,9 +3,9 @@
 #   cd ios && xcodegen generate
 #   xcodebuild -project Dotrino.xcodeproj -scheme Dotrino -destination 'platform=iOS Simulator,name=iPhone 16' test
 #
-# Sin cuenta de Apple Developer todavía (2026-09-26): solo simulador. Por eso no hay
-# `aps-environment` (push) ni `associated-domains` (enlaces universales): los dos exigen un
-# equipo de firma. Ver el README.
+# Firma: equipo DOTRINO S.A.S. (P7G853375S), automática. Para un iPhone:
+#   xcodebuild … -destination 'platform=iOS,name=Dotrino Phone' -allowProvisioningUpdates build
+# Todavía sin `aps-environment` (push): falta que el proxio timbre por APNs. Ver el README.
 name: Dotrino
 options:
   bundleIdPrefix: com.dotrino
@@ -14,6 +14,8 @@ options:
 settings:
   base:
     SWIFT_VERSION: "5.0"
+    DEVELOPMENT_TEAM: P7G853375S
+    CODE_SIGN_STYLE: Automatic
     MARKETING_VERSION: 0.3.0
     CURRENT_PROJECT_VERSION: 1
 targets:
