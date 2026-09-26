@@ -96,7 +96,7 @@ final class MainTabController: UIViewController, WKNavigationDelegate, WKUIDeleg
             // Abierta la ventana de la moneda, la barra ocupa toda la pestaña; cerrada, lo suyo.
             self.barHeight.constant = open ? self.approvalsBox.bounds.height : h
         }
-        for v in [approvalsHost.view!, topbar] {
+        for v in [approvalsHost.view!, topbar!] {
             v.translatesAutoresizingMaskIntoConstraints = false
             approvalsBox.addSubview(v)
         }
