@@ -17,6 +17,10 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         window?.makeKeyAndVisible()
         #if DEBUG
         // Para capturas en el simulador: `simctl launch <sim> com.dotrino.app -approvals` abre Pedidos.
+        if let i = CommandLine.arguments.firstIndex(of: "-openURL"), i + 1 < CommandLine.arguments.count,
+           let url = URL(string: CommandLine.arguments[i + 1]) {
+            DispatchQueue.main.async { (self.window?.rootViewController as? MainTabController)?.open(url: url) }
+        }
         if CommandLine.arguments.contains("-approvals") {
             DispatchQueue.main.async { (self.window?.rootViewController as? MainTabController)?.openApprovalsTab() }
         }

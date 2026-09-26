@@ -72,6 +72,9 @@ final class IdentityKeysBridge: NSObject, WKScriptMessageHandlerWithReply {
         }
         let method = req["method"]?.string
         let params = req["params"] ?? [:]
+        #if DEBUG
+        log.info("identity bridge \(method ?? "?", privacy: .public) \(params["k"]?.string ?? params["kid"]?.string ?? "", privacy: .public) from \(message.frameInfo.request.url?.absoluteString ?? "?", privacy: .public) main=\(message.frameInfo.isMainFrame, privacy: .public)")
+        #endif
         Task.detached {
             let out: JSON
             do {
