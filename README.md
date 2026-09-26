@@ -40,12 +40,47 @@ La cripto y el cable viven en el módulo **`dotrino-native`** (ver su README), n
 ```
 android/   Kotlin · Gradle · WebView + pestañas · push (FCM) · Pedidos nativos
   dotrino-native/   la librería: canónico, firma, sobres, proxio, bóveda (puerto mínimo del pilar JS)
-ios/       Swift · WKWebView + pestañas · push (APNs) · XcodeGen (project.yml)
+ios/       Swift · WKWebView + pestañas · Pedidos nativos (SwiftUI) · XcodeGen (project.yml)
+  DotrinoNative/    el mismo puerto en Swift (CryptoKit): llaves en el Secure Enclave
 ```
 
 Las dos cáscaras cargan **las mismas páginas** y solo difieren en lo nativo (aviso del
-sistema, llavero). El `android/` compila en Linux; `ios/` necesita una Mac con Xcode:
-`brew install xcodegen && cd ios && xcodegen generate && open Dotrino.xcodeproj`.
+sistema, llavero). El `android/` compila en Linux; `ios/` necesita una Mac con Xcode.
+
+## iOS
+
+Lo mismo que Android 0.3.0, menos el push:
+
+- **Una llave por cuenta, en el Secure Enclave.** El iframe `id.dotrino.com` firma y
+  descifra con ella por `window.DotrinoIdentityKeys` (`IdentityKeysBridge.swift`, un
+  `WKScriptMessageHandlerWithReply` que solo contesta a ese origen). En el **simulador** no
+  hay enclave: ahí, y decidido al compilar, las llaves son de software en el llavero.
+- **Pedidos nativos** (`ApprovalsModel.swift` + `ApprovalsView.swift`): multicuenta, en vivo
+  por el proxio mientras la pestaña está a la vista, sondeo de 15 s de red de seguridad.
+- **Sin push todavía.** Falta que el proxio timbre por APNs (hoy solo sabe FCM) y el
+  `aps-environment` en la firma.
+
+El código llega a la Mac por git (`git pull`), nunca copiando. En la Mac:
+
+```sh
+cd ios && xcodegen generate            # el .xcodeproj no se commitea
+# pruebas (vectores de oro del pilar JS + llavero) en el simulador
+xcodebuild -project Dotrino.xcodeproj -scheme Dotrino -destination 'platform=iOS Simulator,name=iPhone 16' test
+# en un iPhone conectado (equipo DOTRINO S.A.S.; por SSH, desbloquear antes el llavero)
+xcodebuild -project Dotrino.xcodeproj -scheme Dotrino -destination 'platform=iOS,name=<iPhone>' \
+  -allowProvisioningUpdates -allowProvisioningDeviceRegistration build
+xcrun devicectl device install app --device <id> <DerivedData>/Build/Products/Debug-iphoneos/Dotrino.app
+```
+
+Punta a punta contra un proxio y una bóveda reales: el arnés de Android corre en otra
+máquina de la LAN y la prueba Swift lo lee por HTTP (ver `VaultE2eTests.swift`):
+
+```sh
+E2E_HOST=<ip> node android/dotrino-native/test-vectors/e2e-vault.mjs /tmp/e2e/e2e.json &
+(cd /tmp/e2e && python3 -m http.server 8765) &
+TEST_RUNNER_DOTRINO_E2E_URL=http://<ip>:8765/e2e.json xcodebuild … test-without-building \
+  -only-testing:DotrinoNativeTests/VaultE2eTests
+```
 
 ## Push
 

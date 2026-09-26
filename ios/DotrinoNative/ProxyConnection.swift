@@ -81,7 +81,7 @@ public final class ProxyConnection: NSObject, URLSessionWebSocketDelegate, @unch
     public func connect(timeout: TimeInterval = 10) async throws -> String {
         let t = session.webSocketTask(with: url)
         t.maximumMessageSize = 4 * 1024 * 1024
-        lock.lock(); ws = t; lock.unlock()
+        lock.withLock { ws = t }
         t.resume()
         receive(t)
         ping()
@@ -189,10 +189,11 @@ public final class ProxyConnection: NSObject, URLSessionWebSocketDelegate, @unch
     @discardableResult
     private func request(_ frame: [String: JSON], timeout: TimeInterval = 10) async throws -> JSON {
         let p = OneShot<JSON>()
-        lock.lock()
-        let id = "req_\(nextId)"; nextId += 1
-        pending[id] = p
-        lock.unlock()
+        let id: String = lock.withLock {
+            let id = "req_\(nextId)"; nextId += 1
+            pending[id] = p
+            return id
+        }
         defer { _ = take(id) }
         var f = frame
         f["id"] = .string(id)

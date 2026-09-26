@@ -141,7 +141,7 @@ public final class VaultClient: @unchecked Sendable {
         }
         var n = a
         n.cert = cert
-        stateLock.lock(); _account = n; stateLock.unlock()
+        stateLock.withLock { _account = n }
         onRenewed(n)
         return n
     }

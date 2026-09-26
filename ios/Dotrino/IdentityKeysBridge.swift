@@ -81,17 +81,17 @@ final class IdentityKeysBridge: NSObject, WKScriptMessageHandlerWithReply {
     }
 
     /// The key [kid], or the error the page shows: no other key is ever made in its place.
-    private static func keys(_ kid: String) throws -> EnclaveKeys {
+    nonisolated private static func keys(_ kid: String) throws -> EnclaveKeys {
         guard EnclaveKeys.exists(kid) else { throw BridgeError(description: "that key is not on this phone", code: "native-key-gone") }
         return try EnclaveKeys.open(kid)
     }
 
-    private static func str(_ p: JSON, _ k: String) throws -> String {
+    nonisolated private static func str(_ p: JSON, _ k: String) throws -> String {
         guard let v = p[k]?.string else { throw BridgeError(description: "missing \(k)", code: "native-bad-request") }
         return v
     }
 
-    private static func call(_ method: String?, _ p: JSON) throws -> JSON {
+    nonisolated private static func call(_ method: String?, _ p: JSON) throws -> JSON {
         switch method {
         case "create":
             let kid = UUID().uuidString.lowercased()
