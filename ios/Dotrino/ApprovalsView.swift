@@ -30,8 +30,9 @@ final class AppLang: ObservableObject {
     private init() {
         let saved = UserDefaults.standard.string(forKey: Self.key)
         let sys = (Locale.preferredLanguages.first ?? "es").hasPrefix("en") ? "en" : "es"
-        code = saved == "en" || saved == "es" ? saved! : sys
-        bundle = Self.bundle(for: code)
+        let c = saved == "en" || saved == "es" ? saved! : sys
+        code = c
+        bundle = Self.bundle(for: c)
     }
 
     private static func bundle(for code: String) -> Bundle {
