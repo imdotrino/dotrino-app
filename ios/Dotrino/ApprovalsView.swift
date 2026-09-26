@@ -19,9 +19,39 @@ extension Color {
     }
 }
 
-/// A localized string, with `%1$@`-style arguments.
+/// El idioma de la app: el que se elige en el `<dotrino-topbar>` (es/en), el mismo que usan
+/// las páginas (`dotrino.lang`). Sin elegir, el del sistema.
+final class AppLang: ObservableObject {
+    static let shared = AppLang()
+    private static let key = "dotrino.lang"
+    @Published private(set) var code: String
+    private(set) var bundle: Bundle
+
+    private init() {
+        let saved = UserDefaults.standard.string(forKey: Self.key)
+        let sys = (Locale.preferredLanguages.first ?? "es").hasPrefix("en") ? "en" : "es"
+        code = saved == "en" || saved == "es" ? saved! : sys
+        bundle = Self.bundle(for: code)
+    }
+
+    private static func bundle(for code: String) -> Bundle {
+        guard let p = Bundle.main.path(forResource: code, ofType: "lproj"), let b = Bundle(path: p) else {
+            preconditionFailure("missing \(code).lproj in the app bundle")
+        }
+        return b
+    }
+
+    func set(_ c: String) {
+        guard (c == "es" || c == "en"), c != code else { return }
+        bundle = Self.bundle(for: c)
+        code = c
+        UserDefaults.standard.set(c, forKey: Self.key)
+    }
+}
+
+/// A localized string in the app's language, with `%1$@`-style arguments.
 func L(_ key: String, _ args: CVarArg...) -> String {
-    let f = NSLocalizedString(key, comment: "")
+    let f = AppLang.shared.bundle.localizedString(forKey: key, value: nil, table: nil)
     return args.isEmpty ? f : String(format: f, arguments: args)
 }
 
@@ -29,6 +59,8 @@ func L(_ key: String, _ args: CVarArg...) -> String {
 /// requests, then what is approved for now. Nothing here goes through the WebView.
 struct ApprovalsView: View {
     @ObservedObject var model: ApprovalsModel
+    /// Cambiar de idioma en la barra vuelve a pintar la pantalla.
+    @ObservedObject var lang = AppLang.shared
     let onAddAccount: () -> Void
     let onOpenWeb: () -> Void
     @State private var removing: ApprovalsModel.AccountState?

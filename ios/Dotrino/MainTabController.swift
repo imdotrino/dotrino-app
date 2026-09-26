@@ -33,6 +33,11 @@ final class MainTabController: UIViewController, WKNavigationDelegate, WKUIDeleg
     private let offline = UIStackView()
     private let model = ApprovalsModel()
     private var approvalsHost: UIHostingController<ApprovalsView>!
+    /// Pedidos = la barra de Dotrino + la lista nativa, en un contenedor.
+    private let approvalsBox = UIView()
+    private let topbar = TopbarView()
+    private var barHeight: NSLayoutConstraint!
+    private var listTop: NSLayoutConstraint!
     private lazy var items: [UITabBarItem] = [
         UITabBarItem(title: L("tab_home"), image: UIImage(systemName: "house"), tag: Tab.home.rawValue),
         UITabBarItem(title: L("tab_profile"), image: UIImage(systemName: "person.crop.circle"), tag: Tab.profile.rawValue),
@@ -40,7 +45,7 @@ final class MainTabController: UIViewController, WKNavigationDelegate, WKUIDeleg
         UITabBarItem(title: L("tab_approvals"), image: UIImage(systemName: "bell"), tag: Tab.approvals.rawValue),
     ]
 
-    private var approvalsVisible: Bool { !approvalsHost.view.isHidden }
+    private var approvalsVisible: Bool { !approvalsBox.isHidden }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -79,8 +84,32 @@ final class MainTabController: UIViewController, WKNavigationDelegate, WKUIDeleg
             onAddAccount: { [weak self] in self?.hideApprovals(); self?.open(url: Self.addAccount) },
             onOpenWeb: { [weak self] in self?.hideApprovals(); self?.open(url: Self.approvalsWeb) }))
         approvalsHost.view.backgroundColor = bg
-        approvalsHost.view.isHidden = true
+        approvalsBox.backgroundColor = bg
+        approvalsBox.isHidden = true
         addChild(approvalsHost)
+        topbar.onOpen = { [weak self] url in self?.hideApprovals(); self?.open(url: url) }
+        topbar.onLang = { [weak self] l in AppLang.shared.set(l); self?.retitleTabs() }
+        topbar.onHeight = { [weak self] h, open in
+            guard let self else { return }
+            self.listTop.constant = h
+            // Abierta la ventana de la moneda, la barra ocupa toda la pestaña; cerrada, lo suyo.
+            self.barHeight.constant = open ? self.approvalsBox.bounds.height : h
+        }
+        for v in [approvalsHost.view!, topbar] {
+            v.translatesAutoresizingMaskIntoConstraints = false
+            approvalsBox.addSubview(v)
+        }
+        barHeight = topbar.heightAnchor.constraint(equalToConstant: 64)
+        listTop = approvalsHost.view.topAnchor.constraint(equalTo: approvalsBox.topAnchor, constant: 64)
+        NSLayoutConstraint.activate([
+            barHeight, listTop,
+            topbar.topAnchor.constraint(equalTo: approvalsBox.topAnchor),
+            topbar.leadingAnchor.constraint(equalTo: approvalsBox.leadingAnchor),
+            topbar.trailingAnchor.constraint(equalTo: approvalsBox.trailingAnchor),
+            approvalsHost.view.leadingAnchor.constraint(equalTo: approvalsBox.leadingAnchor),
+            approvalsHost.view.trailingAnchor.constraint(equalTo: approvalsBox.trailingAnchor),
+            approvalsHost.view.bottomAnchor.constraint(equalTo: approvalsBox.bottomAnchor),
+        ])
 
         tabs.items = items
         tabs.delegate = self
@@ -95,12 +124,12 @@ final class MainTabController: UIViewController, WKNavigationDelegate, WKUIDeleg
 
         buildOffline()
 
-        for v in [web!, approvalsHost.view!, offline, tabs] {
+        for v in [web!, approvalsBox, offline, tabs] {
             v.translatesAutoresizingMaskIntoConstraints = false
             view.addSubview(v)
         }
         approvalsHost.didMove(toParent: self)
-        for v in [web!, approvalsHost.view!] {
+        for v in [web!, approvalsBox] {
             NSLayoutConstraint.activate([
                 v.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
                 v.leadingAnchor.constraint(equalTo: view.leadingAnchor),
@@ -165,17 +194,23 @@ final class MainTabController: UIViewController, WKNavigationDelegate, WKUIDeleg
     }
 
     private func showApprovals() {
-        approvalsHost.view.isHidden = false
+        approvalsBox.isHidden = false
+        topbar.loadIfNeeded()
         offline.isHidden = true
         model.start()
     }
 
     private func hideApprovals() {
-        approvalsHost.view.isHidden = true
+        approvalsBox.isHidden = true
         model.stop()
     }
 
     private func select(_ t: Tab) { tabs.selectedItem = items[t.rawValue] }
+
+    /// Los títulos de las pestañas siguen al idioma elegido en la barra.
+    private func retitleTabs() {
+        for (i, k) in ["tab_home", "tab_profile", "tab_vault", "tab_approvals"].enumerated() { items[i].title = L(k) }
+    }
 
     /// La pestaña marcada sigue a la página que se está viendo.
     private func syncTab(_ url: URL?) {
