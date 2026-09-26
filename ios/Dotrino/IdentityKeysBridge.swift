@@ -73,7 +73,6 @@ final class IdentityKeysBridge: NSObject, WKScriptMessageHandlerWithReply {
         let method = req["method"]?.string
         let params = req["params"] ?? [:]
         #if DEBUG
-        if method == "storeLoad", let webView = message.webView { Self.dumpPageStorage(webView, message.frameInfo) }
         log.notice("identity bridge \(method ?? "?", privacy: .public) \(params["k"]?.string ?? params["kid"]?.string ?? "", privacy: .public) from \(message.frameInfo.request.url?.absoluteString ?? "?", privacy: .public) main=\(message.frameInfo.isMainFrame, privacy: .public)")
         #endif
         Task.detached {
@@ -88,35 +87,6 @@ final class IdentityKeysBridge: NSObject, WKScriptMessageHandlerWithReply {
             await MainActor.run { replyHandler(out.text, nil) }
         }
     }
-
-    #if DEBUG
-    /// DIAGNÓSTICO: qué guardó la identidad en el almacén de ESTA página (el de antes de
-    /// nativeStore) y qué versión se cargó. Solo en DEBUG; nada de valores, solo nombres.
-    private static func dumpPageStorage(_ webView: WKWebView, _ frame: WKFrameInfo) {
-        let js = """
-        const ls = []
-        for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k.startsWith('dotrino.identity.')) ls.push(k) }
-        const keys = await new Promise((r) => {
-          const q = indexedDB.open('dotrino-identity-keys')
-          q.onerror = () => r('open-error')
-          q.onsuccess = () => {
-            const db = q.result
-            if (!db.objectStoreNames.contains('keys')) { r('no-store'); return }
-            const out = []
-            const c = db.transaction('keys').objectStore('keys').openCursor()
-            c.onsuccess = () => { const x = c.result; if (x) { out.push(String(x.key) + '=' + (x.value && x.value.external ? 'ext:' + x.value.external : 'soft')); x.continue() } else r(out) }
-          }
-        })
-        return JSON.stringify({ script: [...document.scripts].map((s) => s.src).filter(Boolean).join(' '), profiles: localStorage.getItem('dotrino.identity.profiles'), current: localStorage.getItem('dotrino.identity.current'), kv: ls, keys })
-        """
-        webView.callAsyncJavaScript(js, arguments: [:], in: frame, in: .page) { r in
-            switch r {
-            case .success(let v): log.notice("page storage: \(String(describing: v), privacy: .public)")
-            case .failure(let e): log.error("page storage dump failed: \(e.localizedDescription, privacy: .public)")
-            }
-        }
-    }
-    #endif
 
     /// The key [kid], or the error the page shows: no other key is ever made in its place.
     nonisolated private static func keys(_ kid: String) throws -> EnclaveKeys {
