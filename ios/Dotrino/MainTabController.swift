@@ -300,7 +300,7 @@ final class ConsoleBridge: NSObject, WKScriptMessageHandler {
     }
 
     func userContentController(_ c: WKUserContentController, didReceive message: WKScriptMessage) {
-        Self.web.info("[web] \(String(describing: message.body), privacy: .public)")
+        Self.web.notice("[web] \(String(describing: message.body), privacy: .public)")
     }
 }
 #endif
