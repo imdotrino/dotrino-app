@@ -35,7 +35,7 @@ final class MainTabController: UIViewController, WKNavigationDelegate, WKUIDeleg
     private var approvalsHost: UIHostingController<ApprovalsView>!
     /// Pedidos = la barra de Dotrino + la lista nativa, en un contenedor.
     private let approvalsBox = UIView()
-    private let topbar = TopbarView()
+    private var topbar: TopbarView!
     private var barHeight: NSLayoutConstraint!
     private var listTop: NSLayoutConstraint!
     private lazy var items: [UITabBarItem] = [
@@ -87,6 +87,7 @@ final class MainTabController: UIViewController, WKNavigationDelegate, WKUIDeleg
         approvalsBox.backgroundColor = bg
         approvalsBox.isHidden = true
         addChild(approvalsHost)
+        topbar = TopbarView(pool: web.configuration.processPool)
         topbar.onOpen = { [weak self] url in self?.hideApprovals(); self?.open(url: url) }
         topbar.onLang = { [weak self] l in AppLang.shared.set(l); self?.retitleTabs() }
         topbar.onHeight = { [weak self] h, open in

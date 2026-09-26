@@ -41,9 +41,12 @@ final class TopbarView: UIView, WKNavigationDelegate, WKUIDelegate, WKScriptMess
     </body></html>
     """
 
-    override init(frame: CGRect) {
-        super.init(frame: frame)
+    /// [pool]: el del WebView principal. Uno aparte arranca otros procesos de WebKit, y crearlo
+    /// antes de que la app termine de arrancar dejaba la pantalla en negro.
+    init(pool: WKProcessPool) {
+        super.init(frame: .zero)
         let cfg = WKWebViewConfiguration()
+        cfg.processPool = pool
         cfg.websiteDataStore = .default()
         cfg.userContentController.add(WeakHandler(self), name: "dotrinoTopbar")
         web = WKWebView(frame: .zero, configuration: cfg)
