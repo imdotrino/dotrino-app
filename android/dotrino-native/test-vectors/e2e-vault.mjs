@@ -5,6 +5,7 @@
 // trae `vault:approve` hasta que se le concede), ve el pedido, lo abre y lo aprueba.
 //
 //   node dotrino-native/test-vectors/e2e-vault.mjs <salida.json>
+//   E2E_HOST=192.168.x.y node … <salida.json>   (proxio alcanzable desde otra máquina: iOS, ver ios/README)
 //
 // Escribe <salida.json> cuando está listo, y <salida.json>.written cuando la bóveda guardó
 // la variable aprobada. Se cierra solo a los 3 minutos.
@@ -27,7 +28,8 @@ process.env.DOTRINO_VAULT_NOTICE_MS = '150'
 
 const proxy = require(path.join(root, 'dotrino-proxy/server.js'))
 const port = await proxy.start(0)
-const proxyUrl = `ws://127.0.0.1:${port}`
+// E2E_HOST: la IP de esta máquina en la LAN, para probar desde otra (el simulador de iOS en la Mac).
+const proxyUrl = `ws://${process.env.E2E_HOST || '127.0.0.1'}:${port}`
 
 const { startVault } = await import(path.join(root, 'dotrino-vault/src/vault.js'))
 const { parseInvite } = await import(path.join(root, 'dotrino-vault/lib/src/invite.js'))
