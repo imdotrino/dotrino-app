@@ -3,10 +3,11 @@ package com.dotrino.app
 import android.content.Context
 import android.util.Log
 import com.dotrino.sdk.Account
-import com.dotrino.sdk.AccountStore
+import com.dotrino.sdk.IdentityClient
 import com.dotrino.sdk.Approval
 import com.dotrino.sdk.Grant
-import com.dotrino.sdk.KeystoreKeys
+import com.dotrino.sdk.RemoteAccounts
+import com.dotrino.sdk.RemoteKeys
 import com.dotrino.sdk.ProxyConnection
 import com.dotrino.sdk.VaultClient
 import com.dotrino.sdk.VaultError
@@ -41,6 +42,8 @@ class ApprovalsModel(context: Context) {
         const val CANNOT_APPROVE = "cannot-approve"
         const val NO_REPLY = "vault-no-reply"
         const val NOT_CONNECTED = "not-connected"
+        /** The identity app (keys and accounts) is not on this phone. */
+        const val IDENTITY_MISSING = IdentityClient.MISSING
     }
 
     sealed interface Status {
@@ -63,7 +66,11 @@ class ApprovalsModel(context: Context) {
     )
 
     private val app = context.applicationContext
-    private val store = AccountStore(app)
+    /** Keys and accounts live in the identity app (dotrino-native/docs/DISENO.md §2.2). */
+    private val identity = Identity.get(app)
+    private val _problem = MutableStateFlow<String?>(null)
+    /** Why there is no list at all (identity app missing, accounts unreadable); null = fine. */
+    val problem: StateFlow<String?> = _problem
     private val _state = MutableStateFlow<Map<String, AccountState>>(emptyMap())
     val state: StateFlow<Map<String, AccountState>> = _state
 
@@ -77,12 +84,18 @@ class ApprovalsModel(context: Context) {
     fun start() {
         if (scope != null) return
         val s = CoroutineScope(SupervisorJob() + Dispatchers.IO).also { scope = it }
-        val accounts = try { store.list() } catch (e: Exception) {
-            Log.e(TAG, "could not read the accounts file", e)
-            _state.value = emptyMap(); return
+        s.launch {
+            val accounts = try { RemoteAccounts.list(identity) } catch (e: kotlinx.coroutines.CancellationException) { throw e }
+            catch (e: Exception) {
+                Log.e(TAG, "could not read the accounts: ${e.message}")
+                // Not reading them is said, never shown as «no accounts».
+                _problem.value = (e as? IdentityClient.IdentityError)?.code?.takeIf { it == IDENTITY_MISSING } ?: (e.message ?: e.javaClass.simpleName)
+                _state.value = emptyMap(); return@launch
+            }
+            _problem.value = null
+            _state.value = accounts.associate { it.id to (_state.value[it.id]?.copy(account = it, status = Status.Connecting) ?: AccountState(it)) }
+            for (a in accounts) s.launch { session(a) }
         }
-        _state.value = accounts.associate { it.id to (_state.value[it.id]?.copy(account = it, status = Status.Connecting) ?: AccountState(it)) }
-        for (a in accounts) s.launch { session(a) }
         // Safety net: a notice lost on the way should not leave a request unseen.
         s.launch { while (isActive) { delay(POLL_MS); refreshAll() } }
     }
@@ -94,8 +107,6 @@ class ApprovalsModel(context: Context) {
         sessions.clear()
     }
 
-    fun accountsCount(): Int = try { store.list().size } catch (_: Exception) { 0 }
-
     /** Keeps an account connected: on a dropped socket it reconnects with a growing wait. */
     private suspend fun session(a0: Account) {
         var wait = 1_000L
@@ -103,13 +114,15 @@ class ApprovalsModel(context: Context) {
             // Removed from this phone: its session ends here, it does not keep retrying with keys that are gone.
             val a = _state.value[a0.id]?.account ?: return
             try {
-                val keys = KeystoreKeys.open(a.id)
+                val keys = RemoteKeys.open(identity, a.id)
                 val conn = ProxyConnection(a.proxy)
                 conn.connect()
                 conn.identify(keys)
                 val vc = VaultClient(a, keys, conn) { renewed ->
-                    store.save(renewed)
                     set(renewed.id) { it.copy(account = renewed) }
+                    scope?.launch {
+                        runCatching { RemoteAccounts.save(identity, renewed) }.onFailure { Log.e(TAG, "could not save the renewed paper: ${it.message}") }
+                    }
                 }
                 conn.onMessage { m ->
                     // The vault's «there is a request» notice: refresh THIS account now.
@@ -205,8 +218,12 @@ class ApprovalsModel(context: Context) {
 
     /** Removes an account from this phone: its keys go with it. It stays in the vault's record until revoked there. */
     fun remove(accountId: String) {
-        store.remove(accountId)
-        sessions.remove(accountId)?.first?.let { runCatching { it.close() } }
-        _state.update { it - accountId }
+        val s = scope ?: return
+        s.launch {
+            try { RemoteAccounts.remove(identity, accountId) } catch (e: kotlinx.coroutines.CancellationException) { throw e }
+            catch (e: Exception) { set(accountId) { it.copy(error = e.message ?: e.javaClass.simpleName) }; return@launch }
+            sessions.remove(accountId)?.first?.let { runCatching { it.close() } }
+            _state.update { it - accountId }
+        }
     }
 }

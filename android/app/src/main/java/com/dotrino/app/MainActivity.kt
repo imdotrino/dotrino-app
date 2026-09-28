@@ -163,7 +163,8 @@ class MainActivity : AppCompatActivity() {
      */
     private fun openIntent(intent: Intent?): Boolean {
         val u = intent?.data?.takeIf { it.host?.matches(INSIDE) == true } ?: return false
-        if (u.host == "vault.dotrino.com" && u.path?.startsWith("/approvals") == true && approvals.model.accountsCount() > 0) {
+        // Pedidos es nativo: sin cuentas, la propia pantalla lo dice y ofrece verlos en la web.
+        if (u.host == "vault.dotrino.com" && u.path?.startsWith("/approvals") == true) {
             selectTab(R.id.nav_approvals); approvals.show(); return true
         }
         approvals.hide(); web.loadUrl(u.toString()); return true

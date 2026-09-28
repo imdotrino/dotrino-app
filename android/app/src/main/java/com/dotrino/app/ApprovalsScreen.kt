@@ -58,7 +58,9 @@ class ApprovalsScreen(
     fun show() {
         box.visibility = View.VISIBLE
         model.start()
-        if (collect == null) collect = activity.lifecycleScope.launch { model.state.collect { adapter.submitList(rowsOf(it)) } }
+        if (collect == null) collect = activity.lifecycleScope.launch {
+            kotlinx.coroutines.flow.combine(model.state, model.problem) { st, p -> rowsOf(st, p) }.collect { adapter.submitList(it) }
+        }
         ticker.removeCallbacks(tick); ticker.post(tick)
     }
 
@@ -91,8 +93,17 @@ class ApprovalsScreen(
 
     private fun s(id: Int, vararg args: Any) = activity.getString(id, *args)
 
-    private fun rowsOf(m: Map<String, ApprovalsModel.AccountState>): List<Row> {
+    private fun rowsOf(m: Map<String, ApprovalsModel.AccountState>, problem: String?): List<Row> {
         val rows = mutableListOf<Row>()
+        // Sin la app de identidad no hay cuentas que enseñar: se dice y se ofrece instalarla.
+        if (problem == ApprovalsModel.IDENTITY_MISSING) {
+            rows += Note("identity-missing", s(R.string.identity_missing))
+            rows += Action("install-identity", s(R.string.identity_install)) {
+                activity.startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, com.dotrino.sdk.IdentityClient.installUri))
+            }
+            return rows
+        }
+        if (problem != null) { rows += Note("problem", s(R.string.err_accounts, problem)); return rows }
         if (m.isEmpty()) {
             rows += Note("none-accounts", s(R.string.no_accounts))
             rows += Action("add", s(R.string.add_account), onAddAccount)
