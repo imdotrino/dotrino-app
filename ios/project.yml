@@ -17,7 +17,7 @@ settings:
     DEVELOPMENT_TEAM: P7G853375S
     CODE_SIGN_STYLE: Automatic
     MARKETING_VERSION: 0.4.4
-    CURRENT_PROJECT_VERSION: 1
+    CURRENT_PROJECT_VERSION: 2
 packages:
   # La librería nativa del ecosistema (repo dotrino-native): cripto, cable, cuentas, almacén.
   DotrinoNative:
@@ -37,6 +37,13 @@ targets:
       path: Dotrino/Info.plist
       properties:
         CFBundleDisplayName: Dotrino
+        # La versión la ponen MARKETING_VERSION / CURRENT_PROJECT_VERSION (arriba); sin esto XcodeGen
+        # escribe «1.0» y App Store Connect la muestra así.
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        # Solo el cifrado del propio sistema (CryptoKit, Security, WebKit): exento de la
+        # documentación de exportación. Así TestFlight no lo pregunta en cada build.
+        ITSAppUsesNonExemptEncryption: false
         CFBundleDevelopmentRegion: es
         CFBundleLocalizations: [es, en]
         UILaunchScreen:
