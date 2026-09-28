@@ -28,6 +28,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.dotrino.sdk.IdentityClient
+import com.dotrino.sdk.ui.DotrinoLocale
+import com.dotrino.sdk.ui.DotrinoTopbar
 
 /**
  * La app de Dotrino: una cáscara nativa sobre las mismas páginas del ecosistema. El
@@ -128,7 +130,10 @@ class MainActivity : AppCompatActivity() {
         approvals = ApprovalsScreen(this, findViewById(R.id.approvalsBox), findViewById(R.id.approvals), findViewById(R.id.approvalsList),
             onAddAccount = { approvals.hide(); web.loadUrl(ADD_ACCOUNT) },
             onOpenWeb = { approvals.hide(); web.loadUrl(APPROVALS) })
-        NativeTopbar(this, findViewById(R.id.topbar)) { u -> approvals.hide(); web.loadUrl(u.toString()); syncNav(u.toString()) }
+        // La barra nativa de Dotrino (dotrino-native): la misma de la app de identidad.
+        findViewById<android.widget.FrameLayout>(R.id.topbar).addView(DotrinoTopbar(this, repo = "imdotrino/dotrino-app") {
+            approvals.hide(); web.loadUrl(DotrinoTopbar.HOME); syncNav(DotrinoTopbar.HOME)
+        }.view)
         nav.setOnItemSelectedListener { item -> onTab(item.itemId); true }
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
@@ -156,6 +161,8 @@ class MainActivity : AppCompatActivity() {
             if (savedInstanceState.getBoolean(STATE_APPROVALS)) { selectTab(R.id.nav_approvals); approvals.show() }
         }
     }
+
+    override fun attachBaseContext(base: android.content.Context) = super.attachBaseContext(DotrinoLocale.wrap(base))
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)

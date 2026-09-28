@@ -1,24 +1,22 @@
 import java.io.File
 import java.util.Base64
 
+// LA APP DE IDENTIDAD de Android (docs/DISENO.md §2.2): guarda las llaves (Keystore), el
+// almacén de la identidad y las cuentas, y atiende a las demás apps de Dotrino por un servicio
+// con permiso de FIRMA. Lo más ligera posible: cada llamada de otra app pasa por aquí, así que
+// nada de AppCompat, Material ni WebView.
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
-    id("com.google.gms.google-services") // push nativo (FCM): necesita app/google-services.json (gitignoreado)
 }
 
-// FIRMA DE RELEASE (la llave de SUBIDA a Google Play): viene de la bóveda, nunca de un archivo
-// del repo ni de un `.env`.
+// FIRMA DE RELEASE: la MISMA llave de subida que com.dotrino.app, de la bóveda (cajón `claude`):
 //
-//   dotrino-env run --ns claude -- ./gradlew --no-daemon :app:bundleRelease
+//   dotrino-env run --ns claude -- ./gradlew --no-daemon :identity-app:bundleRelease
 //
-// `dotrino-env` pone en el entorno ANDROID_UPLOAD_KEYSTORE_B64 / _STORE_PASSWORD / _KEY_ALIAS /
-// _KEY_PASSWORD (cajón `claude`, con aprobación en el teléfono). El .jks se escribe en
-// $XDG_RUNTIME_DIR —memoria, no disco— y se borra al salir la JVM; `--no-daemon` hace que esa
-// JVM sea la de ESTA compilación y no un daemon que se queda vivo con la ruta apuntada.
-//
-// Sin esas variables el release sale SIN firmar (y así lo dice Gradle): no hay otra llave de
-// repuesto a la que caer.
+// El permiso del servicio es de nivel FIRMA: en el teléfono las dos apps tienen que llevar el
+// mismo certificado. En Play eso lo decide la llave de firma de la app (al darla de alta se elige
+// «la misma que com.dotrino.app»), no esta. Sin las variables el release sale sin firmar.
 val uploadKey: Map<String, String>? = run {
     val b64 = System.getenv("ANDROID_UPLOAD_KEYSTORE_B64") ?: return@run null
     val dir = System.getenv("XDG_RUNTIME_DIR") ?: error("XDG_RUNTIME_DIR is not set: refusing to write the upload key to disk")
@@ -35,17 +33,15 @@ val uploadKey: Map<String, String>? = run {
 }
 
 android {
-    namespace = "com.dotrino.app"
+    namespace = "com.dotrino.identity"
     compileSdk = 36
-
     defaultConfig {
-        applicationId = "com.dotrino.app"
+        applicationId = "com.dotrino.identity"
         minSdk = 31
         targetSdk = 36
-        versionCode = 13
-        versionName = "0.4.2"
+        versionCode = 2
+        versionName = "0.2.0"
     }
-
     signingConfigs {
         if (uploadKey != null) {
             create("release") {
@@ -56,11 +52,11 @@ android {
             }
         }
     }
-
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
             if (uploadKey != null) signingConfig = signingConfigs.getByName("release")
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
     compileOptions {
@@ -68,19 +64,8 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions { jvmTarget = "17" }
-    buildFeatures { buildConfig = true }
 }
 
 dependencies {
-    implementation("com.dotrino:dotrino-native")   // includeBuild de ../native/android
-    implementation("androidx.appcompat:appcompat:1.7.0")
-    implementation("androidx.recyclerview:recyclerview:1.3.2")
-    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
-    implementation("androidx.webkit:webkit:1.12.1")
-    implementation("com.google.android.material:material:1.12.0")
-    implementation("androidx.activity:activity-ktx:1.9.3")
-    implementation("androidx.core:core-ktx:1.15.0")
-    implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
-    implementation("com.google.firebase:firebase-messaging")
+    implementation(project(":dotrino-native"))
 }

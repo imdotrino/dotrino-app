@@ -25,7 +25,7 @@
             android:orientation="vertical"
             android:background="@color/bg"
             android:visibility="gone">
-            <include android:id="@+id/topbar" layout="@layout/topbar_native" />
+            <FrameLayout android:id="@+id/topbar" android:layout_width="match_parent" android:layout_height="wrap_content" />
             <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
                 android:id="@+id/approvals"
                 android:layout_width="match_parent"
