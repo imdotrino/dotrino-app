@@ -40,6 +40,26 @@
                     android:paddingBottom="24dp" />
             </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
         </LinearLayout>
+
+        <!-- Sin la app de identidad no hay perfil ni llaves: se dice aquí, encima de todo, y no en cada pestaña. -->
+        <LinearLayout
+            android:id="@+id/identityGate"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:padding="32dp"
+            android:background="@color/bg"
+            android:clickable="true"
+            android:visibility="gone">
+            <TextView android:id="@+id/identityGateText"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:gravity="center" android:textSize="16sp"
+                android:text="@string/identity_missing" android:textColor="@color/fg" />
+            <Button android:id="@+id/identityGateInstall"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_marginTop="24dp" android:text="@string/identity_install" />
+        </LinearLayout>
     </FrameLayout>
 
     <LinearLayout

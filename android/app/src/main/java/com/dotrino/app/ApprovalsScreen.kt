@@ -95,14 +95,7 @@ class ApprovalsScreen(
 
     private fun rowsOf(m: Map<String, ApprovalsModel.AccountState>, problem: String?): List<Row> {
         val rows = mutableListOf<Row>()
-        // Sin la app de identidad no hay cuentas que enseñar: se dice y se ofrece instalarla.
-        if (problem == ApprovalsModel.IDENTITY_MISSING) {
-            rows += Note("identity-missing", s(R.string.identity_missing))
-            rows += Action("install-identity", s(R.string.identity_install)) {
-                activity.startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, com.dotrino.sdk.IdentityClient.installUri))
-            }
-            return rows
-        }
+        // Sin la app de identidad lo dice MainActivity, encima de todo (identityGate).
         if (problem != null) { rows += Note("problem", s(R.string.err_accounts, problem)); return rows }
         if (m.isEmpty()) {
             rows += Note("none-accounts", s(R.string.no_accounts))

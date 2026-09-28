@@ -27,6 +27,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.dotrino.sdk.IdentityClient
 
 /**
  * La app de Dotrino: una cáscara nativa sobre las mismas páginas del ecosistema. El
@@ -98,6 +99,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var web: WebView
     private lateinit var nav: BottomNavigationView
     private lateinit var offline: LinearLayout
+    private lateinit var identityGate: LinearLayout
     private lateinit var approvals: ApprovalsScreen
     private var resumed = false
     private var fileChooser: ValueCallback<Array<Uri>>? = null
@@ -118,6 +120,9 @@ class MainActivity : AppCompatActivity() {
         nav = findViewById(R.id.nav)
         offline = findViewById(R.id.offline)
         findViewById<Button>(R.id.retry).setOnClickListener { offline.visibility = View.GONE; web.reload() }
+        identityGate = findViewById(R.id.identityGate)
+        findViewById<Button>(R.id.identityGateInstall).setOnClickListener { installIdentity() }
+        identityGate.visibility = if (IdentityClient.isInstalled(this)) View.GONE else View.VISIBLE
 
         setupWebView()
         approvals = ApprovalsScreen(this, findViewById(R.id.approvalsBox), findViewById(R.id.approvals), findViewById(R.id.approvalsList),
@@ -188,7 +193,24 @@ class MainActivity : AppCompatActivity() {
         nav.setOnItemSelectedListener { item -> onTab(item.itemId); true }
     }
 
-    override fun onResume() { super.onResume(); resumed = true; if (approvals.visible) approvals.show() }
+    override fun onResume() {
+        super.onResume(); resumed = true
+        // Volver de Play con la app de identidad ya instalada: se arranca de nuevo para que la
+        // página y Pedidos la encuentren desde el principio.
+        val hasIdentity = IdentityClient.isInstalled(this)
+        if (identityGate.visibility == View.VISIBLE && hasIdentity) { recreate(); return }
+        if (!hasIdentity) identityGate.visibility = View.VISIBLE
+        if (approvals.visible) approvals.show()
+    }
+
+    /** La app de identidad guarda las llaves y el perfil de todas las apps de Dotrino: sin ella esta no funciona. */
+    private fun installIdentity() {
+        try { startActivity(Intent(Intent.ACTION_VIEW, IdentityClient.installUri)) }
+        catch (e: android.content.ActivityNotFoundException) {
+            Log.w(TAG, "no store to install the identity app: ${e.message}")
+            findViewById<android.widget.TextView>(R.id.identityGateText).setText(R.string.identity_no_store)
+        }
+    }
     override fun onPause() { resumed = false; super.onPause() }
     override fun onStop() { approvals.stop(); super.onStop() }
 
