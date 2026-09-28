@@ -43,6 +43,8 @@ targets:
           UIColorName: ""
         NSCameraUsageDescription: "Para escanear el código de emparejamiento de tu bóveda."
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait, UIInterfaceOrientationLandscapeLeft, UIInterfaceOrientationLandscapeRight]
+        # iPad: App Store exige las cuatro para la multitarea (error 90474 al subir sin ellas).
+        UISupportedInterfaceOrientations~ipad: [UIInterfaceOrientationPortrait, UIInterfaceOrientationPortraitUpsideDown, UIInterfaceOrientationLandscapeLeft, UIInterfaceOrientationLandscapeRight]
         UIUserInterfaceStyle: Dark
     # EL PERFIL SE COMPARTE entre las apps de Dotrino del teléfono (dotrino-native/docs/DISENO.md
     # §2.1): mismas llaves (Keychain Access Group) y mismos archivos (App Group).
