@@ -1,13 +1,14 @@
 import DotrinoNative
+import DotrinoNativeUI
 import SwiftUI
 
-/// Colores de la app: los mismos que `android/app/src/main/res/values/colors.xml`.
+/// Colores de la app: los del ecosistema (`DotrinoPalette`) más los de estado de Pedidos.
 enum Palette {
-    static let bg = Color(hex: 0x0B1220)
-    static let accent = Color(hex: 0x4F8CFF)
-    static let fg = Color(hex: 0xDBE7F7)
-    static let muted = Color(hex: 0x8A9BB5)
-    static let card = Color(hex: 0x131D31)
+    static let bg = DotrinoPalette.bg
+    static let accent = DotrinoPalette.accent
+    static let fg = DotrinoPalette.fg
+    static let muted = DotrinoPalette.muted
+    static let card = DotrinoPalette.card
     static let warn = Color(hex: 0xFFD98A)
     static let ok = Color(hex: 0x7FE0A8)
     static let bad = Color(hex: 0xFF9AA2)
@@ -19,40 +20,9 @@ extension Color {
     }
 }
 
-/// El idioma de la app: el que se elige en el `<dotrino-topbar>` (es/en), el mismo que usan
-/// las páginas (`dotrino.lang`). Sin elegir, el del sistema.
-final class AppLang: ObservableObject {
-    static let shared = AppLang()
-    private static let key = "dotrino.lang"
-    @Published private(set) var code: String
-    private(set) var bundle: Bundle
-
-    private init() {
-        let saved = UserDefaults.standard.string(forKey: Self.key)
-        let sys = (Locale.preferredLanguages.first ?? "es").hasPrefix("en") ? "en" : "es"
-        let c = saved == "en" || saved == "es" ? saved! : sys
-        code = c
-        bundle = Self.bundle(for: c)
-    }
-
-    private static func bundle(for code: String) -> Bundle {
-        guard let p = Bundle.main.path(forResource: code, ofType: "lproj"), let b = Bundle(path: p) else {
-            preconditionFailure("missing \(code).lproj in the app bundle")
-        }
-        return b
-    }
-
-    func set(_ c: String) {
-        guard (c == "es" || c == "en"), c != code else { return }
-        bundle = Self.bundle(for: c)
-        code = c
-        UserDefaults.standard.set(c, forKey: Self.key)
-    }
-}
-
-/// A localized string in the app's language, with `%1$@`-style arguments.
+/// A text of the app in the language chosen in the topbar (`DotrinoLang`), with `%1$@`-style arguments.
 func L(_ key: String, _ args: CVarArg...) -> String {
-    let f = AppLang.shared.bundle.localizedString(forKey: key, value: nil, table: nil)
+    let f = DotrinoLang.shared.text(key)
     return args.isEmpty ? f : String(format: f, arguments: args)
 }
 
@@ -61,7 +31,7 @@ func L(_ key: String, _ args: CVarArg...) -> String {
 struct ApprovalsView: View {
     @ObservedObject var model: ApprovalsModel
     /// Cambiar de idioma en la barra vuelve a pintar la pantalla.
-    @ObservedObject var lang = AppLang.shared
+    @ObservedObject var lang = DotrinoLang.shared
     let onAddAccount: () -> Void
     let onOpenWeb: () -> Void
     /// Un enlace del ecosistema pulsado en la barra.
@@ -72,7 +42,15 @@ struct ApprovalsView: View {
         TimelineView(.periodic(from: .now, by: 1)) { ctx in
             content(now: Int64(ctx.date.timeIntervalSince1970 * 1000))
         }
-        .safeAreaInset(edge: .top, spacing: 0) { TopBar(onOpen: onOpen) }
+        .safeAreaInset(edge: .top, spacing: 0) {
+            // La barra del ecosistema (dotrino-native). Sus enlaces a *.dotrino.com se abren
+            // DENTRO de la app, como toda página del ecosistema; el resto (Ko-fi, Discord), fuera.
+            DotrinoTopbar(repo: "imdotrino/dotrino-app")
+                .environment(\.openURL, OpenURLAction { url in
+                    guard let h = url.host, h == "dotrino.com" || h.hasSuffix(".dotrino.com") else { return .systemAction }
+                    onOpen(url); return .handled
+                })
+        }
         .background(Palette.bg.ignoresSafeArea())
         .alert(item: $removing) { st in
             Alert(title: Text(L("remove_confirm", st.account.name)),

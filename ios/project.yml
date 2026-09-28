@@ -16,13 +16,13 @@ settings:
     SWIFT_VERSION: "5.0"
     DEVELOPMENT_TEAM: P7G853375S
     CODE_SIGN_STYLE: Automatic
-    MARKETING_VERSION: 0.3.0
+    MARKETING_VERSION: 0.4.4
     CURRENT_PROJECT_VERSION: 1
 packages:
   # La librería nativa del ecosistema (repo dotrino-native): cripto, cable, cuentas, almacén.
   DotrinoNative:
     url: https://github.com/imdotrino/dotrino-native
-    from: 0.2.0
+    from: 0.5.0
 targets:
   Dotrino:
     type: application
@@ -30,6 +30,9 @@ targets:
     sources: [Dotrino]
     dependencies:
       - package: DotrinoNative
+      # Las pantallas del ecosistema en SwiftUI (barra, idioma): las mismas que usa padel.
+      - package: DotrinoNative
+        product: DotrinoNativeUI
     info:
       path: Dotrino/Info.plist
       properties:

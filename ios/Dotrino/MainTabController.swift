@@ -1,5 +1,6 @@
 import Combine
 import os
+import DotrinoNativeUI
 import SwiftUI
 import UIKit
 import WebKit
@@ -96,7 +97,7 @@ final class MainTabController: UIViewController, WKNavigationDelegate, WKUIDeleg
             approvalsHost.view.trailingAnchor.constraint(equalTo: approvalsBox.trailingAnchor),
         ])
         // Los títulos de las pestañas siguen al idioma elegido en la barra.
-        langSub = AppLang.shared.$code.dropFirst().receive(on: DispatchQueue.main).sink { [weak self] _ in self?.retitleTabs() }
+        langSub = DotrinoLang.shared.$code.dropFirst().receive(on: DispatchQueue.main).sink { [weak self] _ in self?.retitleTabs() }
 
         tabs.items = items
         tabs.delegate = self
