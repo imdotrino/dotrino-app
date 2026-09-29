@@ -101,6 +101,7 @@ class ApprovalsScreen(
             rows += Note("none-accounts", s(R.string.no_accounts))
             rows += Action("add", s(R.string.add_account), onAddAccount)
             rows += Action("web", s(R.string.open_web), onOpenWeb)
+            rows += Action("identity", s(R.string.open_identity)) { com.dotrino.sdk.IdentityClient.open(activity) }
             return rows
         }
         // A FIXED order (the one they were added in): an account that jumps up or down when a
@@ -120,6 +121,8 @@ class ApprovalsScreen(
         if (m.values.any { it.items.isNotEmpty() }) rows += Note("warn", s(R.string.warn))
         if (anyRead) rows += Note("hint", s(R.string.grant_hint))
         rows += Action("add", s(R.string.add_account), onAddAccount)
+        // La app de identidad no tiene icono: su pantalla (cuentas, apps de Dotrino) se abre desde aquí.
+        rows += Action("identity", s(R.string.open_identity)) { com.dotrino.sdk.IdentityClient.open(activity) }
         return rows
     }
 
