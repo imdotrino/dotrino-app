@@ -28,6 +28,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.dotrino.sdk.IdentityClient
+import com.dotrino.sdk.ui.IdentityRequired
 import com.dotrino.sdk.ui.DotrinoLocale
 import com.dotrino.sdk.ui.DotrinoTopbar
 
@@ -101,7 +102,9 @@ class MainActivity : AppCompatActivity() {
     private lateinit var web: WebView
     private lateinit var nav: BottomNavigationView
     private lateinit var offline: LinearLayout
-    private lateinit var identityGate: LinearLayout
+    /** Sin la app de identidad al arrancar; volver de Play con ella instalada arranca de nuevo. */
+    private var identityMissing = false
+    private var identityDialog: android.app.Dialog? = null
     private lateinit var approvals: ApprovalsScreen
     private var resumed = false
     private var fileChooser: ValueCallback<Array<Uri>>? = null
@@ -122,9 +125,7 @@ class MainActivity : AppCompatActivity() {
         nav = findViewById(R.id.nav)
         offline = findViewById(R.id.offline)
         findViewById<Button>(R.id.retry).setOnClickListener { offline.visibility = View.GONE; web.reload() }
-        identityGate = findViewById(R.id.identityGate)
-        findViewById<Button>(R.id.identityGateInstall).setOnClickListener { installIdentity() }
-        identityGate.visibility = if (IdentityClient.isInstalled(this)) View.GONE else View.VISIBLE
+        identityMissing = !IdentityClient.isInstalled(this)
 
         setupWebView()
         approvals = ApprovalsScreen(this, findViewById(R.id.approvalsBox), findViewById(R.id.approvals), findViewById(R.id.approvalsList),
@@ -143,7 +144,9 @@ class MainActivity : AppCompatActivity() {
             }
         })
 
-        if (Build.VERSION.SDK_INT >= 33 &&
+        // Sin la app de identidad no hay pedidos que avisar: primero el modal que la explica, y
+        // el permiso se pide al volver con ella instalada (la actividad arranca de nuevo).
+        if (!identityMissing && Build.VERSION.SDK_INT >= 33 &&
             ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
             askNotifications.launch(Manifest.permission.POST_NOTIFICATIONS)
         }
@@ -204,24 +207,21 @@ class MainActivity : AppCompatActivity() {
         super.onResume(); resumed = true
         // Volver de Play con la app de identidad ya instalada: se arranca de nuevo para que la
         // página y Pedidos la encuentren desde el principio.
+        // Sin ella, el modal compartido lo explica y lleva a Play (CONVENCIONES §16.2); con
+        // «Ahora no» se cierra y vuelve a salir la próxima vez que se abra la app.
         val hasIdentity = IdentityClient.isInstalled(this)
-        if (identityGate.visibility == View.VISIBLE && hasIdentity) { recreate(); return }
-        if (!hasIdentity) identityGate.visibility = View.VISIBLE
+        if (identityMissing && hasIdentity) { identityDialog?.dismiss(); recreate(); return }
+        if (!hasIdentity) {
+            identityMissing = true
+            if (identityDialog?.isShowing != true) identityDialog = IdentityRequired.show(this)
+        }
         if (approvals.visible) approvals.show()
     }
 
-    /** La app de identidad guarda las llaves y el perfil de todas las apps de Dotrino: sin ella esta no funciona. */
-    private fun installIdentity() {
-        try { startActivity(Intent(Intent.ACTION_VIEW, IdentityClient.installUri)) }
-        catch (e: android.content.ActivityNotFoundException) {
-            Log.w(TAG, "no store to install the identity app: ${e.message}")
-            findViewById<android.widget.TextView>(R.id.identityGateText).setText(R.string.identity_no_store)
-        }
-    }
     override fun onPause() { resumed = false; super.onPause() }
     override fun onStop() { approvals.stop(); super.onStop() }
 
-    override fun onDestroy() { if (current === this) current = null; super.onDestroy() }
+    override fun onDestroy() { identityDialog?.dismiss(); if (current === this) current = null; super.onDestroy() }
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)

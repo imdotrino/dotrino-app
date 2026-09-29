@@ -95,7 +95,7 @@ class ApprovalsScreen(
 
     private fun rowsOf(m: Map<String, ApprovalsModel.AccountState>, problem: String?): List<Row> {
         val rows = mutableListOf<Row>()
-        // Sin la app de identidad lo dice MainActivity, encima de todo (identityGate).
+        // Sin la app de identidad lo dice MainActivity, con el modal compartido (IdentityRequired).
         if (problem != null) { rows += Note("problem", s(R.string.err_accounts, problem)); return rows }
         if (m.isEmpty()) {
             rows += Note("none-accounts", s(R.string.no_accounts))

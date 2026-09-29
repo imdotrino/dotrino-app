@@ -48,8 +48,5 @@
     <string name="req_update_verified">It is checked against its signature before installing.</string>
     <!-- Barra nativa de Pedidos: mismos textos que <dotrino-support>. -->
     <!-- La app de identidad (dotrino-native/docs/DISENO.md §2.2). -->
-    <string name="identity_missing">The «Dotrino Identity» app is missing. It keeps your keys for every Dotrino app on this phone, so your account is the same in all of them and you pair only once.</string>
-    <string name="identity_install">Install Dotrino Identity</string>
-    <string name="identity_no_store">Could not open Google Play on this phone. Install «Dotrino Identity» from Google Play.</string>
     <string name="err_accounts">Could not read this phone\'s accounts (%1$s).</string>
 </resources>

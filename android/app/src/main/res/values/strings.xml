@@ -48,8 +48,5 @@
     <string name="req_update_verified">Se verifica contra su firma antes de instalar.</string>
     <!-- Barra nativa de Pedidos: mismos textos que <dotrino-support>. -->
     <!-- La app de identidad (dotrino-native/docs/DISENO.md §2.2). -->
-    <string name="identity_missing">Falta la app «Identidad Dotrino». Guarda tus llaves para todas las apps de Dotrino de este teléfono: así tu cuenta es la misma en todas y solo emparejas una vez.</string>
-    <string name="identity_install">Instalar Identidad Dotrino</string>
-    <string name="identity_no_store">No se pudo abrir Google Play en este teléfono. Instala «Identidad Dotrino» desde Google Play.</string>
     <string name="err_accounts">No se pudieron leer las cuentas de este teléfono (%1$s).</string>
 </resources>
