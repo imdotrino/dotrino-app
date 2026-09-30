@@ -1,4 +1,5 @@
 import DotrinoNative
+import DotrinoNativeUI
 import Foundation
 import os
 
@@ -160,6 +161,9 @@ final class ApprovalsModel: ObservableObject {
                 let items = try await vc.approvals()
                 let grants = (try? await vc.grants()) ?? state[id]?.grants ?? []
                 let before = state[id].map { Set($0.items.map(\.id)) }
+                // A request that arrived now, live (with the screen open no system notice comes):
+                // the trino. Not on the first load, which is only opening the screen.
+                if let before, state[id]?.confirmedAt != nil, items.contains(where: { !before.contains($0.id) }) { DotrinoRing.play() }
                 set(id) {
                     $0.items = items; $0.grants = grants; $0.confirmedAt = nowMs(); $0.error = nil
                 }

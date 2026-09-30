@@ -165,7 +165,11 @@ class ApprovalsModel(context: Context) {
                     val items = vc.approvals()
                     val grants = runCatching { vc.grants() }.getOrElse { _state.value[id]?.grants ?: emptyList() }
                     val before = _state.value[id]?.items?.map { it.id }?.toSet()
+                    val loaded = _state.value[id]?.confirmedAt != null
                     set(id) { it.copy(items = items, grants = grants, confirmedAt = System.currentTimeMillis(), error = null) }
+                    // A request that arrived now, live (with the screen open no system notice
+                    // comes): the trino. Not on the first load, which is only opening the screen.
+                    if (before != null && loaded && items.any { it.id !in before }) com.dotrino.sdk.DotrinoRing.play(app)
                     if (before != items.map { it.id }.toSet()) {
                         Log.i(TAG, "account ${_state.value[id]?.account?.deviceId}: ${items.size} request(s) [${items.joinToString(",") { it.id }}] at ${System.currentTimeMillis()}")
                     }

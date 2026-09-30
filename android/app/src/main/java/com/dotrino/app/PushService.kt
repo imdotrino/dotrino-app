@@ -19,17 +19,16 @@ import com.google.firebase.messaging.RemoteMessage
 class PushService : FirebaseMessagingService() {
 
     companion object {
-        const val CHANNEL = "vault"
+        // Mudo: el trino lo toca DotrinoRing (uno al azar). Reemplaza al viejo «vault», que
+        // sonaba con el tono del sistema y no se puede cambiar una vez creado.
+        const val CHANNEL = "vault_trino"
         private const val PREFS = "push"
         private const val KEY_TOKEN = "fcmToken"
 
         fun savedToken(ctx: Context): String? = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(KEY_TOKEN, null)
 
         fun ensureChannel(ctx: Context) {
-            val nm = ctx.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            if (nm.getNotificationChannel(CHANNEL) == null) {
-                nm.createNotificationChannel(NotificationChannel(CHANNEL, ctx.getString(R.string.channel_vault), NotificationManager.IMPORTANCE_HIGH))
-            }
+            com.dotrino.sdk.DotrinoRing.channel(ctx, CHANNEL, ctx.getString(R.string.channel_vault), replaces = "vault")
         }
 
         fun notifyRequest(ctx: Context) {
@@ -49,7 +48,8 @@ class PushService : FirebaseMessagingService() {
                 .setAutoCancel(true)
                 .setContentIntent(pi)
                 .build()
-            try { (ctx.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).notify(1001, n) } catch (_: SecurityException) {}
+            try { (ctx.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).notify(1001, n) } catch (_: SecurityException) { return }
+            com.dotrino.sdk.DotrinoRing.play(ctx)
         }
     }
 
