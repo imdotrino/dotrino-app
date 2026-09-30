@@ -5,7 +5,6 @@
 #
 # Firma: equipo DOTRINO S.A.S. (P7G853375S), automática. Para un iPhone:
 #   xcodebuild … -destination 'platform=iOS,name=Dotrino Phone' -allowProvisioningUpdates build
-# Todavía sin `aps-environment` (push): falta que el proxio timbre por APNs. Ver el README.
 name: Dotrino
 options:
   bundleIdPrefix: com.dotrino
@@ -22,7 +21,7 @@ packages:
   # La librería nativa del ecosistema (repo dotrino-native): cripto, cable, cuentas, almacén.
   DotrinoNative:
     url: https://github.com/imdotrino/dotrino-native
-    from: 0.5.0
+    from: 0.14.0
 targets:
   Dotrino:
     type: application
@@ -60,6 +59,9 @@ targets:
       properties:
         keychain-access-groups: ["$(AppIdentifierPrefix)com.dotrino.shared"]
         com.apple.security.application-groups: [group.com.dotrino]
+        # El timbre (APNs). `development` aquí; la exportación a TestFlight/App Store lo
+        # cambia a `production`, y DotrinoPush lee cuál lleva la build.
+        aps-environment: development
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.dotrino.app

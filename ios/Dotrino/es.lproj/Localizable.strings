@@ -47,3 +47,7 @@
 "err_accounts_file" = "No se pudo leer la lista de cuentas de este teléfono (%1$@).";
 "ok" = "Aceptar";
 /* Barra nativa de Pedidos: mismos textos que <dotrino-support>. */
+
+/* El timbre de APNs: el proxio manda solo estas claves (ningún texto viaja por Apple). */
+"DOTRINO_RING_TITLE" = "Tu bóveda tiene un pedido";
+"DOTRINO_RING_BODY" = "Alguien pide tus claves, una firma o guardar variables. Toca para aprobar o denegar.";

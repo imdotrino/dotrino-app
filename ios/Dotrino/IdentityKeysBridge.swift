@@ -128,6 +128,7 @@ final class IdentityKeysBridge: NSObject, WKScriptMessageHandlerWithReply {
                                   profileId: p["profileId"]?.string, vault: vault, proxy: try str(p, "proxy"),
                                   cert: cert, deviceId: try Delegation.keyLabel(k.publickey))
             try AccountStore.shared.save(account)
+            Push.accountAdded(account)
             return ["deviceId": .string(account.deviceId)]
         // EL ALMACÉN DE LA IDENTIDAD: uno para todas las páginas (IdentityStore).
         case "storeLoad":

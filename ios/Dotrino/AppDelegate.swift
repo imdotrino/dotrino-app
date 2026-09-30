@@ -1,15 +1,16 @@
 import DotrinoNative
+import DotrinoNativeUI
 import UIKit
+import UserNotifications
 
 /// La app de Dotrino en iOS: la misma cáscara que en Android — las páginas del ecosistema
 /// dentro de un WKWebView, con la identidad firmando con la llave del Secure Enclave, y la
 /// pestaña Pedidos nativa.
 ///
-/// Sin push todavía: el aviso del sistema (APNs) necesita una cuenta de Apple Developer y que
-/// el proxio sepa timbrar por APNs. Hasta entonces Pedidos se entera en vivo mientras está a
-/// la vista, como en Android con la pantalla abierta.
+/// El timbre de Pedidos va por APNs, directo desde el proxio (`Push`): con la app cerrada, un
+/// pedido de la bóveda enseña un aviso sin contenido; con Pedidos a la vista, se refresca ahí.
 @main
-final class AppDelegate: UIResponder, UIApplicationDelegate {
+final class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterDelegate {
     var window: UIWindow?
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
@@ -23,6 +24,8 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         window = UIWindow(frame: UIScreen.main.bounds)
         window?.rootViewController = MainTabController()
         window?.makeKeyAndVisible()
+        UNUserNotificationCenter.current().delegate = self
+        DotrinoPush.register()
         #if DEBUG
         // Para capturas en el simulador: `simctl launch <sim> com.dotrino.app -approvals` abre Pedidos.
         if let i = CommandLine.arguments.firstIndex(of: "-openURL"), i + 1 < CommandLine.arguments.count,
@@ -34,6 +37,29 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         }
         #endif
         return true
+    }
+
+    func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+        Push.tokenArrived(DotrinoPush.token(deviceToken))
+    }
+
+    func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
+        log.warning("APNs registration failed: \(String(describing: error), privacy: .public)")
+    }
+
+    /// A ring with the app open: with Requests on screen it refreshes there and the banner is not
+    /// needed (like Android's `onRing`); anywhere else, the banner shows.
+    func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification,
+                                withCompletionHandler done: @escaping (UNNotificationPresentationOptions) -> Void) {
+        let tabs = window?.rootViewController as? MainTabController
+        done(tabs?.onRing() == true ? [] : [.banner, .sound])
+    }
+
+    /// Tapping the ring opens Requests.
+    func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse,
+                                withCompletionHandler done: @escaping () -> Void) {
+        (window?.rootViewController as? MainTabController)?.openApprovalsTab()
+        done()
     }
 
     /// Enlaces del ecosistema: se abren dentro de la app (cuando haya enlaces universales).

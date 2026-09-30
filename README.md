@@ -57,8 +57,9 @@ Lo mismo que Android 0.3.0, menos el push:
   hay enclave: ahí, y decidido al compilar, las llaves son de software en el llavero.
 - **Pedidos nativos** (`ApprovalsModel.swift` + `ApprovalsView.swift`): multicuenta, en vivo
   por el proxio mientras la pestaña está a la vista, sondeo de 15 s de red de seguridad.
-- **Sin push todavía.** Falta que el proxio timbre por APNs (hoy solo sabe FCM) y el
-  `aps-environment` en la firma.
+- **Timbre por APNs** (`Push.swift`): cada cuenta registra el token del teléfono bajo su llave
+  de aparato; el proxio (≥ 1.3.0) avisa directo por APNs, sin Firebase. El aviso no lleva
+  contenido: el texto sale de `DOTRINO_RING_TITLE`/`DOTRINO_RING_BODY` en `Localizable.strings`.
 
 El código llega a la Mac por git (`git pull`), nunca copiando. En la Mac:
 

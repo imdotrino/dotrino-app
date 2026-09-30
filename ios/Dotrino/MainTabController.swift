@@ -58,7 +58,8 @@ final class MainTabController: UIViewController, WKNavigationDelegate, WKUIDeleg
         cfg.mediaTypesRequiringUserActionForPlayback = []
         cfg.applicationNameForUserAgent = "DotrinoApp/\(Self.version)"
         // Lo que la página ve como `window.DotrinoNative` (solo en *.dotrino.com): así sabe que
-        // corre dentro de la app. Sin push todavía en iOS, `pushToken()` es null.
+        // corre dentro de la app. `pushToken()` es null: el timbre de iOS lo registra la parte
+        // nativa (Push.swift) cuenta por cuenta, no la página.
         cfg.userContentController.addUserScript(WKUserScript(source: """
             if (/(^|\\.)dotrino\\.com$/.test(location.hostname)) {
               window.DotrinoNative = { platform: function () { return 'ios' }, version: function () { return '\(Self.version)' }, pushToken: function () { return null } }
@@ -179,6 +180,14 @@ final class MainTabController: UIViewController, WKNavigationDelegate, WKUIDeleg
         }
         hideApprovals()
         web.load(URLRequest(url: url))
+    }
+
+    /// A ring arrived with the app open. With Requests on screen they refresh now and there is
+    /// nothing else to show: returns true. Otherwise the caller shows the banner.
+    func onRing() -> Bool {
+        guard approvalsVisible else { return false }
+        model.refreshAll()
+        return true
     }
 
     func openApprovalsTab() {
