@@ -45,6 +45,15 @@
     <string name="req_update">Tu bóveda quiere actualizarse a la %1$s</string>
     <string name="req_update_from">Ahora tiene la %1$s</string>
     <string name="req_update_verified">Se verifica contra su firma antes de instalar.</string>
+    <string name="req_passwords">%1$s quiere leer una contraseña guardada</string>
+    <string name="req_fields">Campos: %1$s</string>
+    <string name="field_password">contraseña</string>
+    <string name="field_totp">código de verificación (2FA)</string>
+    <string name="field_passkey">llave de acceso (passkey)</string>
+    <string name="field_notes">notas</string>
+    <string name="passwords_hint">Al aprobar una contraseña, ese aparato puede leer contraseñas hasta que la bóveda se reinicie.</string>
+    <string name="notif_many">%1$d pedidos en tu bóveda</string>
+    <string name="notif_tap">Toca para aprobar o denegar.</string>
     <!-- Barra nativa de Pedidos: mismos textos que <dotrino-support>. -->
     <!-- La app de identidad (dotrino-native/docs/DISENO.md §2.2). -->
     <string name="err_accounts">No se pudieron leer las cuentas de este teléfono (%1$s).</string>

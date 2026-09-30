@@ -107,10 +107,15 @@ class ApprovalsScreen(
         // request arrives or is answered is exactly how you lose track of which one is which.
         val ordered = m.values.sortedBy { it.account.addedAt }
         var anyRead = false
+        var anyPasswords = false
         for (st in ordered) {
             val id = st.account.id
             rows += Header(st)
-            for (a in st.items) { rows += Req(id, a, a.id in st.busy); if (a.kind == "read") anyRead = true }
+            for (a in st.items) {
+                rows += Req(id, a, a.id in st.busy)
+                if (a.kind == "read") anyRead = true
+                if (a.kind == "passwords") anyPasswords = true
+            }
             if (st.items.isEmpty() && st.confirmedAt != null) rows += Note("n:$id", s(R.string.none))
             if (st.grants.isNotEmpty()) {
                 rows += Note("gt:$id", s(R.string.grants_title))
@@ -119,6 +124,7 @@ class ApprovalsScreen(
         }
         if (m.values.any { it.items.isNotEmpty() }) rows += Note("warn", s(R.string.warn))
         if (anyRead) rows += Note("hint", s(R.string.grant_hint))
+        if (anyPasswords) rows += Note("hintp", s(R.string.passwords_hint))
         rows += Action("add", s(R.string.add_account), onAddAccount)
         return rows
     }
@@ -196,17 +202,14 @@ class ApprovalsScreen(
 
         private fun bindReq(v: View, r: Req) {
             val a = r.a
-            val who = a.label.ifBlank { a.deviceId }.let { if (a.label.isNotBlank()) "$it (${a.deviceId})" else it }
             val detail = v.findViewById<TextView>(R.id.detail)
             val sub = v.findViewById<TextView>(R.id.sub)
             val ctx = a.ctx
-            v.findViewById<TextView>(R.id.who).text = when (a.kind) {
-                // The vault itself asks to install a new version (vaultd ≥ 0.130.0).
-                "update" -> s(R.string.req_update, ctx?.get("version")?.jsonPrimitive?.content ?: "?")
-                "write" -> s(R.string.req_writes, who, a.ns)
-                else -> s(R.string.req_asks, who, a.ns)
-            }
+            v.findViewById<TextView>(R.id.who).text = RequestText.title(activity, a)
             when {
+                a.kind == "passwords" -> {
+                    detail.text = RequestText.fields(activity, a) ?: ""; sub.visibility = View.GONE
+                }
                 a.kind == "update" -> {
                     val from = ctx?.get("from")?.jsonPrimitive?.content
                     detail.text = if (from != null) s(R.string.req_update_from, from) else ""
