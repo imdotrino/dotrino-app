@@ -51,7 +51,7 @@ struct ApprovalsView: View {
         .safeAreaInset(edge: .top, spacing: 0) {
             // La barra del ecosistema (dotrino-native). Sus enlaces a *.dotrino.com se abren
             // DENTRO de la app, como toda página del ecosistema; el resto (Ko-fi, Discord), fuera.
-            DotrinoTopbar(repo: "imdotrino/dotrino-app")
+            DotrinoTopbar(repo: "imdotrino/dotrino-app", showProfile: false) // Pedidos is of EVERY profile of the phone
                 .environment(\.openURL, OpenURLAction { url in
                     guard let h = url.host, h == "dotrino.com" || h.hasSuffix(".dotrino.com") else { return .systemAction }
                     onOpen(url); return .handled

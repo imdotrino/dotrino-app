@@ -132,7 +132,7 @@ class MainActivity : AppCompatActivity() {
             onAddAccount = { approvals.hide(); web.loadUrl(ADD_ACCOUNT) },
             onOpenWeb = { approvals.hide(); web.loadUrl(APPROVALS) })
         // La barra nativa de Dotrino (dotrino-native): la misma de la app de identidad.
-        findViewById<android.widget.FrameLayout>(R.id.topbar).addView(DotrinoTopbar(this, repo = "imdotrino/dotrino-app") {
+        findViewById<android.widget.FrameLayout>(R.id.topbar).addView(DotrinoTopbar(this, repo = "imdotrino/dotrino-app", showProfile = false /* Pedidos is of EVERY profile of the phone */) {
             approvals.hide(); web.loadUrl(DotrinoTopbar.HOME); syncNav(DotrinoTopbar.HOME)
         }.view)
         nav.setOnItemSelectedListener { item -> onTab(item.itemId); true }
