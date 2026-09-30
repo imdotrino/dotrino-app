@@ -115,7 +115,7 @@ class ApprovalsModel(context: Context) {
             val a = _state.value[a0.id]?.account ?: return
             try {
                 val keys = RemoteKeys.open(identity, a.id)
-                val conn = ProxyConnection(a.proxy)
+                val conn = ProxyConnection(a.proxy, "vault")   // the approver app: its rings and its queue
                 conn.connect()
                 conn.identify(keys)
                 val vc = VaultClient(a, keys, conn) { renewed ->

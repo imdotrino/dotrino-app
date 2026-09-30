@@ -96,7 +96,7 @@ class PushService : FirebaseMessagingService() {
 
         private suspend fun ofAccount(identity: com.dotrino.sdk.IdentityClient, a: Account): List<Approval> {
             val keys = RemoteKeys.open(identity, a.id)
-            val conn = ProxyConnection(a.proxy)
+            val conn = ProxyConnection(a.proxy, "vault")   // the approver app: its rings and its queue
             var renewed: Account? = null
             try {
                 conn.connect()

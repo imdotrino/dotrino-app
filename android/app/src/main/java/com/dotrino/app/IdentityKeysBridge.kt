@@ -54,7 +54,7 @@ object IdentityKeysBridge {
 
     /** The phone's FCM token under this account's key: the vault's ring reaches it. */
     suspend fun registerPush(ctx: Context, account: Account, token: String) {
-        val conn = ProxyConnection(account.proxy)
+        val conn = ProxyConnection(account.proxy, "vault")   // ring THIS app, not messenger (same key)
         try {
             conn.connect()
             conn.registerPushToken(RemoteKeys.open(Identity.get(ctx), account.id), token)
