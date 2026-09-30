@@ -26,6 +26,12 @@ func L(_ key: String, _ args: CVarArg...) -> String {
     return args.isEmpty ? f : String(format: f, arguments: args)
 }
 
+/// `L` with the arguments as an array, the shape `RequestText` takes.
+func Lt(_ key: String, _ args: [CVarArg]) -> String {
+    let f = DotrinoLang.shared.text(key)
+    return args.isEmpty ? f : String(format: f, arguments: args)
+}
+
 /// The native «Requests» tab. One section per account with its NAME always on top, then its
 /// requests, then what is approved for now. Nothing here goes through the WebView.
 struct ApprovalsView: View {
@@ -86,6 +92,7 @@ struct ApprovalsView: View {
                 }
                 if model.state.values.contains(where: { !$0.items.isEmpty }) { note(L("warn"), color: Palette.warn) }
                 if model.state.values.contains(where: { $0.items.contains { $0.kind == "read" } }) { note(L("grant_hint")) }
+                if model.state.values.contains(where: { $0.items.contains { $0.kind == "passwords" } }) { note(L("passwords_hint")) }
                 action(L("add_account"), onAddAccount)
             }
         }
@@ -142,19 +149,13 @@ struct ApprovalsView: View {
     }
 
     private func request(_ st: ApprovalsModel.AccountState, _ a: Approval, now: Int64) -> some View {
-        let who = a.label.isEmpty ? a.deviceId : "\(a.label) (\(a.deviceId))"
         let ctx = a.ctx
-        let title: String = {
-            switch a.kind {
-            // The vault itself asks to install a new version (vaultd ≥ 0.130.0).
-            case "update": return L("req_update", ctx?["version"]?.string ?? "?")
-            case "write": return L("req_writes", who, a.ns)
-            default: return L("req_asks", who, a.ns)
-            }
-        }()
+        let title = RequestText.title(a, Lt)
         var detail = ""
         var sub: (String, Color)?
-        if a.kind == "update" {
+        if a.kind == "passwords" {
+            detail = RequestText.fields(a, Lt) ?? ""
+        } else if a.kind == "update" {
             if let from = ctx?["from"]?.string { detail = L("req_update_from", from) }
             sub = (L("req_update_verified"), Palette.muted)
         } else if a.kind == "write", let ctx {

@@ -15,8 +15,8 @@ settings:
     SWIFT_VERSION: "5.0"
     DEVELOPMENT_TEAM: P7G853375S
     CODE_SIGN_STYLE: Automatic
-    MARKETING_VERSION: 0.4.4
-    CURRENT_PROJECT_VERSION: 2
+    MARKETING_VERSION: 0.4.5
+    CURRENT_PROJECT_VERSION: 3
 packages:
   # La librería nativa del ecosistema (repo dotrino-native): cripto, cable, cuentas, almacén.
   DotrinoNative:
@@ -26,8 +26,10 @@ targets:
   Dotrino:
     type: application
     platform: iOS
-    sources: [Dotrino]
+    sources: [Dotrino, Shared]
     dependencies:
+      # La extensión que hace que el aviso diga el porqué (se incrusta en la app).
+      - target: NotificationService
       - package: DotrinoNative
       # Las pantallas del ecosistema en SwiftUI (barra, idioma): las mismas que usa padel.
       - package: DotrinoNative
@@ -67,6 +69,40 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.dotrino.app
         TARGETED_DEVICE_FAMILY: "1,2"
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+
+  # EL AVISO DICE EL PORQUÉ: iOS la despierta al llegar el timbre (APNs con `mutable-content`),
+  # baja los pedidos con las llaves y cuentas COMPARTIDAS de la app y reescribe la alerta.
+  # Mismo llavero y mismo App Group que la app: sin ellos no ve ni cuentas ni llaves.
+  NotificationService:
+    type: app-extension
+    platform: iOS
+    sources:
+      - NotificationService
+      - Shared
+      # Los textos son los de la app: una sola copia.
+      - path: Dotrino/es.lproj
+      - path: Dotrino/en.lproj
+    dependencies:
+      - package: DotrinoNative
+    info:
+      path: NotificationService/Info.plist
+      properties:
+        CFBundleDisplayName: Dotrino
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        CFBundleDevelopmentRegion: es
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.usernotifications.service
+          NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).NotificationService
+    entitlements:
+      path: NotificationService/NotificationService.entitlements
+      properties:
+        keychain-access-groups: ["$(AppIdentifierPrefix)com.dotrino.shared"]
+        com.apple.security.application-groups: [group.com.dotrino]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.dotrino.app.NotificationService
+        TARGETED_DEVICE_FAMILY: "1,2"
 
   # Lo que necesita un llavero de verdad (llaves, cuentas, almacén): alojado en la app.
   DotrinoTests:
