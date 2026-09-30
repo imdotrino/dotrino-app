@@ -7,7 +7,7 @@ import WebKit
 
 /// La app de Dotrino: una cáscara nativa sobre las mismas páginas del ecosistema. El pilar de
 /// identidad (iframe id.dotrino.com) corre dentro del WKWebView igual que en un navegador,
-/// con sus llaves en el Secure Enclave (IdentityKeysBridge). Pedidos es nativo.
+/// con sus llaves en el Secure Enclave (IdentityWebBridge de dotrino-native). Pedidos es nativo.
 ///
 /// Un solo WebView y cuatro pestañas: Inicio (dotrino.com), Perfil, Bóveda y Pedidos. La
 /// pestaña marcada sigue a la página que se ve; los enlaces fuera de *.dotrino.com van a Safari.
@@ -65,7 +65,7 @@ final class MainTabController: UIViewController, WKNavigationDelegate, WKUIDeleg
               window.DotrinoNative = { platform: function () { return 'ios' }, version: function () { return '\(Self.version)' }, pushToken: function () { return null } }
             }
             """, injectionTime: .atDocumentStart, forMainFrameOnly: true))
-        IdentityKeysBridge.install(cfg)
+        IdentityWebBridge.install(cfg)
         #if DEBUG
         ConsoleBridge.install(cfg)
         #endif

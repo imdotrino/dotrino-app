@@ -24,6 +24,8 @@ final class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationC
         window = UIWindow(frame: UIScreen.main.bounds)
         window?.rootViewController = MainTabController()
         window?.makeKeyAndVisible()
+        // After pairing, the new account gets this phone's push token (the bridge is dotrino-native's).
+        IdentityWebBridge.onSaved = { Push.accountAdded($0) }
         UNUserNotificationCenter.current().delegate = self
         DotrinoPush.register()
         #if DEBUG

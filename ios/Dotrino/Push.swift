@@ -5,7 +5,7 @@ import Foundation
 /// THE RING of Requests on iOS: APNs straight from the proxy (no Firebase). Every vault account
 /// on this phone registers the token under ITS device key — that is who the vault writes to — so
 /// a request queued while the app is closed rings the phone. The same as Android's
-/// `IdentityKeysBridge.registerAll` with FCM.
+/// `IdentityKeysBridge.registerAll` (Android) with FCM.
 ///
 /// What arrives is an alert with no content: the proxy sends only `DOTRINO_RING_TITLE` /
 /// `DOTRINO_RING_BODY`, and the text comes from Localizable.strings.
