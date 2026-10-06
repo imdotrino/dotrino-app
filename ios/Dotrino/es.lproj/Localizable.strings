@@ -60,3 +60,4 @@
 /* El timbre de APNs: el proxio manda solo estas claves (ningún texto viaja por Apple). */
 "DOTRINO_RING_TITLE" = "Tu bóveda tiene un pedido";
 "DOTRINO_RING_BODY" = "Alguien pide tus claves, una firma o guardar variables. Toca para aprobar o denegar.";
+"presence_reason" = "Aprobar: %1$@";

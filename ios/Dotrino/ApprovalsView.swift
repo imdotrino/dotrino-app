@@ -121,7 +121,7 @@ struct ApprovalsView: View {
             }
         }()
         // Connected to the proxy is not «all good»: if the vault is not answering, the dot says so too.
-        let dot = st.error != nil && base == Palette.ok ? Palette.warn : base
+        let dot = (st.error ?? st.notice) != nil && base == Palette.ok ? Palette.warn : base
         return VStack(alignment: .leading, spacing: 4) {
             Text(st.account.name).font(.headline).foregroundColor(Palette.fg)
             Text(L("acct_phone", st.account.deviceId)).font(.caption).foregroundColor(Palette.muted)
@@ -138,8 +138,17 @@ struct ApprovalsView: View {
         .accessibilityIdentifier("account-\(st.account.deviceId)")
     }
 
+    /// Approving hands out keys, so the phone asks «is it you?» first (Face ID, Touch ID or the
+    /// passcode). Denying does not: it takes nothing out. Without a passcode there is nothing to
+    /// confirm with, and the request is NOT approved — the screen says why.
+    @MainActor private func approve(_ accountId: String, _ requestId: String, _ title: String) async {
+        let outcome = await Presence.confirm(L("presence_reason", title))
+        if outcome == .confirmed { model.approve(accountId, requestId) }
+        else if let m = Presence.message(outcome) { model.say(accountId, m) }
+    }
+
     private func errorText(_ st: ApprovalsModel.AccountState) -> String? {
-        switch st.error {
+        switch st.notice ?? st.error {
         case nil: return nil
         case ApprovalsModel.cannotApprove?: return L("err_cannot_approve")
         case ApprovalsModel.noReply?: return L("err_no_reply")
@@ -181,7 +190,7 @@ struct ApprovalsView: View {
                     .buttonStyle(.bordered).tint(Palette.bad).disabled(busy)
                     .accessibilityIdentifier("deny-\(a.id)")
                 Spacer()
-                Button(L("approve")) { model.approve(st.account.id, a.id) }
+                Button(L("approve")) { Task { await approve(st.account.id, a.id, title) } }
                     .buttonStyle(.borderedProminent).tint(Palette.accent).disabled(busy)
                     .accessibilityIdentifier("approve-\(a.id)")
             }

@@ -63,6 +63,8 @@ class ApprovalsModel(context: Context) {
         val busy: Set<String> = emptySet(),
         /** The last thing that went wrong answering or refreshing, said on screen. */
         val error: String? = null,
+        /** What the PHONE said (it could not confirm it is you). A refresh does not clear it: only the next answer does. */
+        val notice: String? = null,
     )
 
     private val app = context.applicationContext
@@ -187,10 +189,13 @@ class ApprovalsModel(context: Context) {
     fun deny(accountId: String, requestId: String) = answer(accountId, requestId) { it.deny(requestId) }
     fun revokeGrant(accountId: String, grantId: String) = answer(accountId, grantId) { it.revokeGrant(grantId) }
 
+    /** Something the screen has to say about an account that did not come from its vault. */
+    fun say(accountId: String, message: String) = set(accountId) { it.copy(notice = message) }
+
     private fun answer(accountId: String, key: String, op: suspend (VaultClient) -> Unit) {
         val s = scope ?: return
         val vc = sessions[accountId]?.second ?: run { set(accountId) { it.copy(error = NOT_CONNECTED) }; return }
-        set(accountId) { it.copy(busy = it.busy + key, error = null) }
+        set(accountId) { it.copy(busy = it.busy + key, error = null, notice = null) }
         s.launch {
             try {
                 op(vc)

@@ -16,6 +16,7 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.dotrino.sdk.Approval
 import com.dotrino.sdk.Grant
+import com.dotrino.sdk.ui.Presence
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.Job
@@ -135,12 +136,24 @@ class ApprovalsScreen(
         return if (t >= 3600) "${t / 3600} h ${(t % 3600) / 60} min" else if (t >= 60) "${t / 60}:${"%02d".format(t % 60)}" else "$t s"
     }
 
-    private fun errorText(st: ApprovalsModel.AccountState): String? = when (val e = st.error) {
+    private fun errorText(st: ApprovalsModel.AccountState): String? = when (val e = st.notice ?: st.error) {
         null -> null
         ApprovalsModel.CANNOT_APPROVE -> s(R.string.err_cannot_approve)
         ApprovalsModel.NO_REPLY -> s(R.string.err_no_reply)
         ApprovalsModel.NOT_CONNECTED -> s(R.string.err_not_connected)
         else -> e
+    }
+
+    /**
+     * Approving hands out keys, so the phone asks «is it you?» first (fingerprint, face or the
+     * screen lock). Denying does not: it takes nothing out. Without a screen lock there is
+     * nothing to confirm with, and the request is NOT approved — the screen says why.
+     */
+    private fun approve(accountId: String, a: Approval) {
+        Presence.confirm(activity, RequestText.title(activity, a)) { res ->
+            if (res == Presence.Result.Confirmed) model.approve(accountId, a.id)
+            else Presence.message(activity, res)?.let { model.say(accountId, it) }
+        }
     }
 
     private fun confirmRemove(st: ApprovalsModel.AccountState) {
@@ -192,7 +205,7 @@ class ApprovalsScreen(
             }
             v.findViewById<TextView>(R.id.status).text = text
             // Connected to the proxy is not «all good»: if the vault is not answering, the dot says so too.
-            val dot = if (st.error != null && color == R.color.ok) R.color.warn else color
+            val dot = if ((st.error ?: st.notice) != null && color == R.color.ok) R.color.warn else color
             v.findViewById<View>(R.id.dot).background.setTint(ContextCompat.getColor(activity, dot))
             v.findViewById<TextView>(R.id.error).apply {
                 val e = errorText(st); visibility = if (e == null) View.GONE else View.VISIBLE; this.text = e
@@ -233,7 +246,7 @@ class ApprovalsScreen(
             }
             bindTime(v, r)
             // Disabled, never hidden, while the answer travels (memory: buttons are disabled, not removed).
-            v.findViewById<MaterialButton>(R.id.approve).apply { isEnabled = !r.busy; setOnClickListener { model.approve(r.accountId, a.id) } }
+            v.findViewById<MaterialButton>(R.id.approve).apply { isEnabled = !r.busy; setOnClickListener { approve(r.accountId, a) } }
             v.findViewById<MaterialButton>(R.id.deny).apply { isEnabled = !r.busy; setOnClickListener { model.deny(r.accountId, a.id) } }
         }
 

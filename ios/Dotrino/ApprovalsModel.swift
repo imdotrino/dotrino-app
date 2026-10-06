@@ -37,6 +37,8 @@ final class ApprovalsModel: ObservableObject {
         var busy: Set<String> = []
         /// The last thing that went wrong answering or refreshing, said on screen.
         var error: String?
+        /// What the PHONE said (it could not confirm it is you). A refresh does not clear it: only the next answer does.
+        var notice: String?
     }
 
     @Published private(set) var state: [String: AccountState] = [:]
@@ -182,10 +184,13 @@ final class ApprovalsModel: ObservableObject {
     func deny(_ accountId: String, _ requestId: String) { answer(accountId, requestId) { try await $0.deny(requestId) } }
     func revokeGrant(_ accountId: String, _ grantId: String) { answer(accountId, grantId) { try await $0.revokeGrant(grantId) } }
 
+    /// Something the screen has to say about an account that did not come from its vault.
+    func say(_ accountId: String, _ message: String) { set(accountId) { $0.notice = message } }
+
     private func answer(_ accountId: String, _ key: String, _ op: @escaping (VaultClient) async throws -> Void) {
         guard running else { return }
         guard let vc = sessions[accountId]?.vault else { set(accountId) { $0.error = Self.notConnected }; return }
-        set(accountId) { $0.busy.insert(key); $0.error = nil }
+        set(accountId) { $0.busy.insert(key); $0.error = nil; $0.notice = nil }
         Task {
             do {
                 try await op(vc)
