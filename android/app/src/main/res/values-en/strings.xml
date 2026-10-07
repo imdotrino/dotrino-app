@@ -47,6 +47,10 @@
     <string name="req_update_verified">It is checked against its signature before installing.</string>
     <string name="req_passwords">%1$s wants to read a saved password</string>
     <string name="req_fields">Fields: %1$s</string>
+    <string name="req_incident">%1$s failed the terminal code of %2$s three times in a row</string>
+    <string name="req_incident_hint">Blocking keeps it out of your vault and your machines without removing it from the account. It is unblocked on the vault.</string>
+    <string name="block">Block</string>
+    <string name="ignore">Ignore</string>
     <string name="field_password">password</string>
     <string name="field_totp">verification code (2FA)</string>
     <string name="field_passkey">passkey</string>

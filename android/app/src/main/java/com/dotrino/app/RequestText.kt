@@ -20,7 +20,15 @@ object RequestText {
         "write" -> ctx.getString(R.string.req_writes, who(a), a.ns)
         // The password vault: which FIELDS it wants to read (vaultd ≥ 0.136.0), never the entry.
         "passwords" -> ctx.getString(R.string.req_passwords, who(a))
+        // An INCIDENT (vaultd ≥ 0.142.0): a device failed the terminal code of `ns` (the reporter) three times. Block or ignore.
+        "incident" -> ctx.getString(R.string.req_incident, who(a), reporter(a))
         else -> ctx.getString(R.string.req_asks, who(a), a.ns)
+    }
+
+    /** Who reported the incident: its label and id, or just the id (`ns`). */
+    fun reporter(a: Approval): String {
+        val label = a.ctx?.get("reporterLabel")?.jsonPrimitive?.content
+        return if (!label.isNullOrBlank()) "$label (${a.ns})" else a.ns
     }
 
     /** «Fields: password, 2FA code» for a password request; null when it says none. */

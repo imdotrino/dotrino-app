@@ -19,8 +19,16 @@ enum RequestText {
         case "write": return t("req_writes", [who(a), a.ns])
         // The password vault: which FIELDS it wants to read (vaultd ≥ 0.136.0), never the entry.
         case "passwords": return t("req_passwords", [who(a)])
+        // An INCIDENT (vaultd ≥ 0.142.0): a device failed the terminal code of `ns` (the reporter) three times. Block or ignore.
+        case "incident": return t("req_incident", [who(a), reporter(a)])
         default: return t("req_asks", [who(a), a.ns])
         }
+    }
+
+    /// Who reported the incident: its label and id, or just the id (`ns`).
+    static func reporter(_ a: Approval) -> String {
+        if let label = a.ctx?["reporterLabel"]?.string, !label.isEmpty { return "\(label) (\(a.ns))" }
+        return a.ns
     }
 
     /// «Fields: password, 2FA code» for a password request; nil when it names none.

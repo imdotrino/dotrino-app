@@ -175,8 +175,11 @@ struct ApprovalsView: View {
         let title = RequestText.title(a, Lt)
         var detail = ""
         var sub: (String, Color)?
+        let incident = a.kind == "incident"
         if a.kind == "passwords" {
             detail = RequestText.fields(a, Lt) ?? ""
+        } else if incident {
+            sub = (L("req_incident_hint"), Palette.muted)
         } else if a.kind == "update" {
             if let from = ctx?["from"]?.string { detail = L("req_update_from", from) }
             sub = (L("req_update_verified"), Palette.muted)
@@ -198,13 +201,14 @@ struct ApprovalsView: View {
             if let sub { Text(sub.0).font(.caption).foregroundColor(sub.1) }
             Text(L("req_left", left(a.exp - now))).font(.caption).foregroundColor(Palette.muted)
             HStack {
-                // Disabled, never hidden, while the answer travels.
-                Button(L("deny")) { model.deny(st.account.id, a.id) }
+                // Disabled, never hidden, while the answer travels. An INCIDENT is not approved:
+                // the device is BLOCKED or the incident IGNORED.
+                Button(L(incident ? "ignore" : "deny")) { model.deny(st.account.id, a.id) }
                     .buttonStyle(.bordered).tint(Palette.bad).disabled(busy)
                     .accessibilityIdentifier("deny-\(a.id)")
                 Spacer()
-                Button(L("approve")) { Task { await approve(st.account.id, a.id, title) } }
-                    .buttonStyle(.borderedProminent).tint(Palette.accent).disabled(busy)
+                Button(L(incident ? "block" : "approve")) { if incident { model.block(st.account.id, a.id) } else { Task { await approve(st.account.id, a.id, title) } } }
+                    .buttonStyle(.borderedProminent).tint(incident ? Palette.bad : Palette.accent).disabled(busy)
                     .accessibilityIdentifier("approve-\(a.id)")
             }
         }

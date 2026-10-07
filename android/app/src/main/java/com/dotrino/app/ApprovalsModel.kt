@@ -192,6 +192,8 @@ class ApprovalsModel(context: Context) {
 
     fun approve(accountId: String, requestId: String) = answer(accountId, requestId) { it.approve(requestId) }
     fun deny(accountId: String, requestId: String) = answer(accountId, requestId) { it.deny(requestId) }
+    /** An incident: block that device (deny = ignore). */
+    fun block(accountId: String, requestId: String) = answer(accountId, requestId) { it.block(requestId) }
     fun revokeGrant(accountId: String, grantId: String) = answer(accountId, grantId) { it.revokeGrant(grantId) }
 
     /** Something the screen has to say about an account that did not come from its vault. */

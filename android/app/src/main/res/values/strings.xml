@@ -47,6 +47,10 @@
     <string name="req_update_verified">Se verifica contra su firma antes de instalar.</string>
     <string name="req_passwords">%1$s quiere leer una contraseña guardada</string>
     <string name="req_fields">Campos: %1$s</string>
+    <string name="req_incident">%1$s falló la clave de la terminal de %2$s tres veces seguidas</string>
+    <string name="req_incident_hint">Bloquear lo deja fuera de tu bóveda y de tus máquinas sin quitarlo de la cuenta. Se desbloquea en la bóveda.</string>
+    <string name="block">Bloquear</string>
+    <string name="ignore">Ignorar</string>
     <string name="field_password">contraseña</string>
     <string name="field_totp">código de verificación (2FA)</string>
     <string name="field_passkey">llave de acceso (passkey)</string>

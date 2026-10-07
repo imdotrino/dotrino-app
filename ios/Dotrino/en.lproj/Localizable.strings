@@ -46,6 +46,10 @@
 "req_update_verified" = "It is checked against its signature before installing.";
 "req_passwords" = "%1$@ wants to read a saved password";
 "req_fields" = "Fields: %1$@";
+"req_incident" = "%1$@ failed the terminal code of %2$@ three times in a row";
+"req_incident_hint" = "Blocking keeps it out of your vault and your machines without removing it from the account. It is unblocked on the vault.";
+"block" = "Block";
+"ignore" = "Ignore";
 "field_password" = "password";
 "field_totp" = "verification code (2FA)";
 "field_passkey" = "passkey";

@@ -46,6 +46,10 @@
 "req_update_verified" = "Se verifica contra su firma antes de instalar.";
 "req_passwords" = "%1$@ quiere leer una contraseña guardada";
 "req_fields" = "Campos: %1$@";
+"req_incident" = "%1$@ falló la clave de la terminal de %2$@ tres veces seguidas";
+"req_incident_hint" = "Bloquear lo deja fuera de tu bóveda y de tus máquinas sin quitarlo de la cuenta. Se desbloquea en la bóveda.";
+"block" = "Bloquear";
+"ignore" = "Ignorar";
 "field_password" = "contraseña";
 "field_totp" = "código de verificación (2FA)";
 "field_passkey" = "llave de acceso (passkey)";

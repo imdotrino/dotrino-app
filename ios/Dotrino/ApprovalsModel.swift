@@ -185,6 +185,8 @@ final class ApprovalsModel: ObservableObject {
 
     func approve(_ accountId: String, _ requestId: String) { answer(accountId, requestId) { try await $0.approve(requestId) } }
     func deny(_ accountId: String, _ requestId: String) { answer(accountId, requestId) { try await $0.deny(requestId) } }
+    /// An incident: block that device (deny = ignore).
+    func block(_ accountId: String, _ requestId: String) { answer(accountId, requestId) { try await $0.block(requestId) } }
     func revokeGrant(_ accountId: String, _ grantId: String) { answer(accountId, grantId) { try await $0.revokeGrant(grantId) } }
 
     /// Something the screen has to say about an account that did not come from its vault.

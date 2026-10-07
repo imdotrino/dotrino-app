@@ -234,6 +234,9 @@ class ApprovalsScreen(
                 a.kind == "passwords" -> {
                     detail.text = RequestText.fields(activity, a) ?: ""; sub.visibility = View.GONE
                 }
+                a.kind == "incident" -> {
+                    detail.text = s(R.string.req_incident_hint); sub.visibility = View.GONE
+                }
                 a.kind == "update" -> {
                     val from = ctx?.get("from")?.jsonPrimitive?.content
                     detail.text = if (from != null) s(R.string.req_update_from, from) else ""
@@ -257,8 +260,17 @@ class ApprovalsScreen(
             }
             bindTime(v, r)
             // Disabled, never hidden, while the answer travels (memory: buttons are disabled, not removed).
-            v.findViewById<MaterialButton>(R.id.approve).apply { isEnabled = !r.busy; setOnClickListener { approve(r.accountId, a) } }
-            v.findViewById<MaterialButton>(R.id.deny).apply { isEnabled = !r.busy; setOnClickListener { model.deny(r.accountId, a.id) } }
+            // An INCIDENT is not approved: the device is BLOCKED or the incident IGNORED. Same two
+            // buttons (the view is recycled, so the text is set every time), other words and other call.
+            val incident = a.kind == "incident"
+            v.findViewById<MaterialButton>(R.id.approve).apply {
+                isEnabled = !r.busy; text = s(if (incident) R.string.block else R.string.approve)
+                setOnClickListener { if (incident) model.block(r.accountId, a.id) else approve(r.accountId, a) }
+            }
+            v.findViewById<MaterialButton>(R.id.deny).apply {
+                isEnabled = !r.busy; text = s(if (incident) R.string.ignore else R.string.deny)
+                setOnClickListener { model.deny(r.accountId, a.id) }
+            }
         }
 
         private fun bindGrant(v: View, r: GrantRow) {
