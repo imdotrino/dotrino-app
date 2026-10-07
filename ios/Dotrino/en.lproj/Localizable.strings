@@ -61,3 +61,7 @@
 "DOTRINO_RING_TITLE" = "Your vault has a request";
 "DOTRINO_RING_BODY" = "Something asks for your keys, a signature or to save variables. Tap to approve or deny.";
 "presence_reason" = "Approve: %1$@";
+"presence_off" = "Approving in this account does not ask to confirm it's you.";
+"presence_on" = "Approving in this account asks for Face ID, Touch ID or the passcode.";
+"presence_turn_on" = "Ask to confirm when approving";
+"presence_turn_off" = "Stop asking to confirm";

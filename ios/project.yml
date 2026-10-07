@@ -15,13 +15,13 @@ settings:
     SWIFT_VERSION: "5.0"
     DEVELOPMENT_TEAM: P7G853375S
     CODE_SIGN_STYLE: Automatic
-    MARKETING_VERSION: 0.4.6
+    MARKETING_VERSION: 0.4.7
     CURRENT_PROJECT_VERSION: 1
 packages:
   # La librería nativa del ecosistema (repo dotrino-native): cripto, cable, cuentas, almacén.
   DotrinoNative:
     url: https://github.com/imdotrino/dotrino-native
-    from: 0.24.0
+    from: 0.25.0
 targets:
   Dotrino:
     type: application
@@ -51,7 +51,7 @@ targets:
           UIColorName: ""
         NSCameraUsageDescription: "Para escanear el código de emparejamiento de tu bóveda."
         # Presence (dotrino-native): antes de aprobar un pedido, el teléfono confirma que eres tú.
-        NSFaceIDUsageDescription: "Para confirmar que eres tú antes de aprobar un pedido."
+        NSFaceIDUsageDescription: "Para confirmar que eres tú antes de aprobar un pedido, si lo activas."
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait, UIInterfaceOrientationLandscapeLeft, UIInterfaceOrientationLandscapeRight]
         # iPad: App Store exige las cuatro para la multitarea (error 90474 al subir sin ellas).
         UISupportedInterfaceOrientations~ipad: [UIInterfaceOrientationPortrait, UIInterfaceOrientationPortraitUpsideDown, UIInterfaceOrientationLandscapeLeft, UIInterfaceOrientationLandscapeRight]

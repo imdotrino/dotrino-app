@@ -65,6 +65,8 @@ class ApprovalsModel(context: Context) {
         val error: String? = null,
         /** What the PHONE said (it could not confirm it is you). A refresh does not clear it: only the next answer does. */
         val notice: String? = null,
+        /** Approving in this account asks «is it you?» first. Off until the person turns it on. */
+        val presence: Boolean = false,
     )
 
     private val app = context.applicationContext
@@ -95,7 +97,10 @@ class ApprovalsModel(context: Context) {
                 _state.value = emptyMap(); return@launch
             }
             _problem.value = null
-            _state.value = accounts.associate { it.id to (_state.value[it.id]?.copy(account = it, status = Status.Connecting) ?: AccountState(it)) }
+            _state.value = accounts.associate {
+                val on = com.dotrino.sdk.ui.Presence.isOn(app, it.id)
+                it.id to (_state.value[it.id]?.copy(account = it, status = Status.Connecting, presence = on) ?: AccountState(it, presence = on))
+            }
             for (a in accounts) s.launch { session(a) }
         }
         // Safety net: a notice lost on the way should not leave a request unseen.
@@ -191,6 +196,9 @@ class ApprovalsModel(context: Context) {
 
     /** Something the screen has to say about an account that did not come from its vault. */
     fun say(accountId: String, message: String) = set(accountId) { it.copy(notice = message) }
+
+    /** The person turned the confirmation on or off for this account (already saved by `Presence.turn`). */
+    fun presenceTurned(accountId: String, on: Boolean) = set(accountId) { it.copy(presence = on, notice = null) }
 
     private fun answer(accountId: String, key: String, op: suspend (VaultClient) -> Unit) {
         val s = scope ?: return

@@ -61,3 +61,7 @@
 "DOTRINO_RING_TITLE" = "Tu bóveda tiene un pedido";
 "DOTRINO_RING_BODY" = "Alguien pide tus claves, una firma o guardar variables. Toca para aprobar o denegar.";
 "presence_reason" = "Aprobar: %1$@";
+"presence_off" = "Aprobar en esta cuenta no pide confirmar que eres tú.";
+"presence_on" = "Aprobar en esta cuenta pide Face ID, Touch ID o el código del teléfono.";
+"presence_turn_on" = "Pedir confirmación al aprobar";
+"presence_turn_off" = "Dejar de pedir confirmación";

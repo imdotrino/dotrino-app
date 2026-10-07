@@ -30,9 +30,10 @@ no extraíbles), y es un aparato más del acta de esa cuenta con `+aprueba`.
 - **Alta:** Pedidos → *Añadir cuenta* abre `vault.dotrino.com/d`, el emparejamiento de
   siempre. Al terminar, la identidad le pasa la cuenta a la app (`save`) y aparece aquí.
   Después, en la bóveda: `dotrino-vault caps <ID> +aprueba`.
-- **Aprobar pide confirmar que eres tú** (Android 0.4.14, iOS 0.4.6): huella, cara o el bloqueo
-  de pantalla, con `Presence` de `dotrino-native` ≥ 0.24.0. Denegar no lo pide. Un teléfono sin
-  bloqueo de pantalla no puede aprobar, y la pantalla lo dice. Es una comprobación de la app: no
+- **Aprobar puede pedir confirmar que eres tú** (Android 0.4.15, iOS 0.4.7): huella, cara o el
+  bloqueo de pantalla, con `Presence` de `dotrino-native` ≥ 0.25.0. **Apagado por defecto**: se
+  enciende por cuenta, al pie de cada una, y encenderlo o apagarlo también lo confirma. Denegar
+  no lo pide nunca. Encendido y sin bloqueo de pantalla, no se aprueba y la pantalla lo dice. Es una comprobación de la app: no
   ata la llave del chip.
 - **Quitar** una cuenta del teléfono: pulsación larga sobre su nombre. Sus llaves se borran
   aquí; en la bóveda se quita como cualquier aparato.

@@ -122,6 +122,8 @@ class ApprovalsScreen(
                 rows += Note("gt:$id", s(R.string.grants_title))
                 st.grants.forEach { rows += GrantRow(id, it, it.id in st.busy) }
             }
+            rows += Note("p:$id:${st.presence}", s(if (st.presence) R.string.presence_on else R.string.presence_off))
+            rows += Action("pa:$id", s(if (st.presence) R.string.presence_turn_off else R.string.presence_turn_on)) { turnPresence(id, !st.presence) }
         }
         if (m.values.any { it.items.isNotEmpty() }) rows += Note("warn", s(R.string.warn))
         if (anyRead) rows += Note("hint", s(R.string.grant_hint))
@@ -145,13 +147,22 @@ class ApprovalsScreen(
     }
 
     /**
-     * Approving hands out keys, so the phone asks «is it you?» first (fingerprint, face or the
-     * screen lock). Denying does not: it takes nothing out. Without a screen lock there is
-     * nothing to confirm with, and the request is NOT approved — the screen says why.
+     * Where the person turned it on for this account, the phone asks «is it you?» before
+     * approving (fingerprint, face or the screen lock). Off by default. Denying never asks: it
+     * takes nothing out. Turned on and without a screen lock, the request is NOT approved — the
+     * screen says why.
      */
     private fun approve(accountId: String, a: Approval) {
-        Presence.confirm(activity, RequestText.title(activity, a)) { res ->
+        Presence.confirmIfOn(activity, accountId, RequestText.title(activity, a)) { res ->
             if (res == Presence.Result.Confirmed) model.approve(accountId, a.id)
+            else Presence.message(activity, res)?.let { model.say(accountId, it) }
+        }
+    }
+
+    /** Turns the confirmation on or off for an account. The phone confirms first, both ways. */
+    private fun turnPresence(accountId: String, on: Boolean) {
+        Presence.turn(activity, accountId, on, s(if (on) R.string.presence_turn_on else R.string.presence_turn_off)) { res ->
+            if (res == Presence.Result.Confirmed) model.presenceTurned(accountId, on)
             else Presence.message(activity, res)?.let { model.say(accountId, it) }
         }
     }

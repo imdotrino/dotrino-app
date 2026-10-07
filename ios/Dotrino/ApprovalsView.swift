@@ -88,6 +88,11 @@ struct ApprovalsView: View {
                             note(L("grants_title"))
                             ForEach(st.grants) { g in grant(st, g, now: now) }
                         }
+                        note(L(st.presence ? "presence_on" : "presence_off"))
+                        Button(L(st.presence ? "presence_turn_off" : "presence_turn_on")) { Task { await turnPresence(st.account.id, !st.presence) } }
+                            .font(.footnote).buttonStyle(.bordered).tint(Palette.accent)
+                            .listRowBackground(Color.clear)
+                            .accessibilityIdentifier("presence-\(st.account.deviceId)")
                     }
                 }
                 if model.state.values.contains(where: { !$0.items.isEmpty }) { note(L("warn"), color: Palette.warn) }
@@ -138,12 +143,20 @@ struct ApprovalsView: View {
         .accessibilityIdentifier("account-\(st.account.deviceId)")
     }
 
-    /// Approving hands out keys, so the phone asks «is it you?» first (Face ID, Touch ID or the
-    /// passcode). Denying does not: it takes nothing out. Without a passcode there is nothing to
-    /// confirm with, and the request is NOT approved — the screen says why.
+    /// Where the person turned it on for this account, the phone asks «is it you?» before
+    /// approving (Face ID, Touch ID or the passcode). Off by default. Denying never asks: it takes
+    /// nothing out. Turned on and without a passcode, the request is NOT approved — the screen
+    /// says why.
     @MainActor private func approve(_ accountId: String, _ requestId: String, _ title: String) async {
-        let outcome = await Presence.confirm(L("presence_reason", title))
+        let outcome = await Presence.confirmIfOn(accountId, reason: L("presence_reason", title))
         if outcome == .confirmed { model.approve(accountId, requestId) }
+        else if let m = Presence.message(outcome) { model.say(accountId, m) }
+    }
+
+    /// Turns the confirmation on or off for an account. The phone confirms first, both ways.
+    @MainActor private func turnPresence(_ accountId: String, _ on: Bool) async {
+        let outcome = await Presence.turn(accountId, on: on, reason: L(on ? "presence_turn_on" : "presence_turn_off"))
+        if outcome == .confirmed { model.presenceTurned(accountId, on) }
         else if let m = Presence.message(outcome) { model.say(accountId, m) }
     }
 

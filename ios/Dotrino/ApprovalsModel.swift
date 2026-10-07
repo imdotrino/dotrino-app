@@ -39,6 +39,8 @@ final class ApprovalsModel: ObservableObject {
         var error: String?
         /// What the PHONE said (it could not confirm it is you). A refresh does not clear it: only the next answer does.
         var notice: String?
+        /// Approving in this account asks «is it you?» first. Off until the person turns it on.
+        var presence = false
     }
 
     @Published private(set) var state: [String: AccountState] = [:]
@@ -71,6 +73,7 @@ final class ApprovalsModel: ObservableObject {
             var st = state[a.id] ?? AccountState(account: a)
             st.account = a
             st.status = .connecting
+            st.presence = Presence.isOn(a.id)
             return (a.id, st)
         })
         for a in accounts { tasks.append(Task { await self.session(a.id) }) }
@@ -186,6 +189,9 @@ final class ApprovalsModel: ObservableObject {
 
     /// Something the screen has to say about an account that did not come from its vault.
     func say(_ accountId: String, _ message: String) { set(accountId) { $0.notice = message } }
+
+    /// The person turned the confirmation on or off for this account (already saved by `Presence.turn`).
+    func presenceTurned(_ accountId: String, _ on: Bool) { set(accountId) { $0.presence = on; $0.notice = nil } }
 
     private func answer(_ accountId: String, _ key: String, _ op: @escaping (VaultClient) async throws -> Void) {
         guard running else { return }
