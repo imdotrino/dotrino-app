@@ -21,7 +21,7 @@ packages:
   # La librería nativa del ecosistema (repo dotrino-native): cripto, cable, cuentas, almacén.
   DotrinoNative:
     url: https://github.com/imdotrino/dotrino-native
-    from: 0.25.0
+    from: 0.26.0
 targets:
   Dotrino:
     type: application
