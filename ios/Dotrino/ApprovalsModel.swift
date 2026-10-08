@@ -1,6 +1,7 @@
 import DotrinoNative
 import DotrinoNativeUI
 import Foundation
+import UserNotifications
 import os
 
 let log = Logger(subsystem: "com.dotrino.app", category: "approvals")
@@ -155,6 +156,15 @@ final class ApprovalsModel: ObservableObject {
     /// ONE question in flight per account. A refresh asked while another is running is not
     /// sent in parallel: it runs once more when the current one ends. So answers can never
     /// arrive out of order, and a failure is never thrown away for being «old».
+    /// Does this phone receive request notifications? The vault is told with every list: to update itself it only asks for approval when some approver can actually find out (vaultd ≥ 0.145.0). `nil` = not decided yet, so nothing is claimed either way.
+    static func notifiable() async -> Bool? {
+        switch await UNUserNotificationCenter.current().notificationSettings().authorizationStatus {
+        case .authorized, .provisional, .ephemeral: return true
+        case .denied: return false
+        default: return nil
+        }
+    }
+
     func refresh(_ id: String) async {
         if inflight.contains(id) { again.insert(id); return }
         inflight.insert(id)
@@ -163,7 +173,7 @@ final class ApprovalsModel: ObservableObject {
             again.remove(id)
             guard let vc = sessions[id]?.vault else { return }
             do {
-                let items = try await vc.approvals()
+                let items = try await vc.approvals(notify: await Self.notifiable())
                 let grants = (try? await vc.grants()) ?? state[id]?.grants ?? []
                 let before = state[id].map { Set($0.items.map(\.id)) }
                 // A request that arrived now, live (with the screen open no system notice comes):

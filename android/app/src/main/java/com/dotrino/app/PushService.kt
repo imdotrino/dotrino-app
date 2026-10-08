@@ -101,7 +101,8 @@ class PushService : FirebaseMessagingService() {
             try {
                 conn.connect()
                 conn.identify(keys)
-                return VaultClient(a, keys, conn) { renewed = it }.approvals()
+                // A ring just got here, so this phone does receive them: say so (see ApprovalsModel.notifiable).
+                return VaultClient(a, keys, conn) { renewed = it }.approvals(notify = true)
             } finally {
                 conn.close()
                 renewed?.let { runCatching { RemoteAccounts.save(identity, it) }.onFailure { e -> Log.e(TAG, "ring: could not save the renewed paper: ${e.message}") } }

@@ -42,8 +42,8 @@ android {
         applicationId = "com.dotrino.app"
         minSdk = 31
         targetSdk = 36
-        versionCode = 27
-        versionName = "0.4.16"
+        versionCode = 28
+        versionName = "0.4.17"
     }
 
     signingConfigs {

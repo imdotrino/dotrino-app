@@ -66,7 +66,8 @@ final class NotificationService: UNNotificationServiceExtension {
                         let vc = VaultClient(account: a, keys: keys, conn: c) { renewed in
                             try? AccountStore.shared.save(renewed)
                         }
-                        return try await vc.approvals()
+                        // A ring just got here, so this phone does receive them: say so.
+                        return try await vc.approvals(notify: true)
                     } catch { return [] }
                 }
             }

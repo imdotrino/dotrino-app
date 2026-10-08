@@ -156,6 +156,17 @@ class ApprovalsModel(context: Context) {
     fun refreshAll() { val s = scope ?: return; for (id in _state.value.keys) s.launch { refresh(id) } }
 
     /**
+     * Does this phone receive request notifications? The vault is told with every list: to
+     * update itself it only asks for approval when some approver can actually find out
+     * (vaultd ≥ 0.145.0). `false` = notifications are off for the app; `null` = allowed but
+     * the push token is not there yet, so nothing is claimed either way.
+     */
+    private fun notifiable(): Boolean? {
+        if (!androidx.core.app.NotificationManagerCompat.from(app).areNotificationsEnabled()) return false
+        return if (PushService.savedToken(app) != null) true else null
+    }
+
+    /**
      * ONE question in flight per account. A refresh asked while another is running is not
      * sent in parallel: it runs once more when the current one ends. So answers can never
      * arrive out of order, and a failure is never thrown away for being «old» — which is
@@ -169,7 +180,7 @@ class ApprovalsModel(context: Context) {
                 again.remove(id)
                 val vc = sessions[id]?.second ?: return
                 try {
-                    val items = vc.approvals()
+                    val items = vc.approvals(notify = notifiable())
                     val grants = runCatching { vc.grants() }.getOrElse { _state.value[id]?.grants ?: emptyList() }
                     val before = _state.value[id]?.items?.map { it.id }?.toSet()
                     val loaded = _state.value[id]?.confirmedAt != null
