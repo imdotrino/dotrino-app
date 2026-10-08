@@ -19,8 +19,14 @@ final class NotificationService: UNNotificationServiceExtension {
         let c = (request.content.mutableCopy() as? UNMutableNotificationContent) ?? UNMutableNotificationContent()
         lock.withLock { deliver = handler; content = c }
         Task {
-            let items = await Self.pending()
-            if !items.isEmpty, let newest = items.max(by: { $0.exp < $1.exp }) {
+            let (items, notices) = await Self.pending()
+            // SIN PEDIDOS Y CON UNA NOTICIA NUEVA: el timbre era para contarla («tu bóveda se
+            // actualizó», vaultd ≥ 0.147.0), no para pedir nada. Con pedidos, mandan los pedidos.
+            let updated = Self.freshUpdate(notices)
+            if items.isEmpty, let updated {
+                c.title = Self.t("notif_updated_title", [])
+                c.body = Self.t("notif_updated_body", [updated.version])
+            } else if !items.isEmpty, let newest = items.max(by: { $0.exp < $1.exp }) {
                 if items.count == 1 {
                     c.title = RequestText.title(newest, Self.t)
                     c.body = Self.t("notif_tap", [])
@@ -50,11 +56,23 @@ final class NotificationService: UNNotificationServiceExtension {
         return args.isEmpty ? f : String(format: f, arguments: args)
     }
 
-    /// Los pedidos vivos de todas las cuentas del teléfono. Si la bóveda renueva el papel de una
-    /// cuenta mientras tanto, SE GUARDA: emitir uno nuevo retira el anterior.
-    static func pending() async -> [Approval] {
-        guard let accounts = try? AccountStore.shared.list() else { return [] }
-        return await withTaskGroup(of: [Approval].self) { group in
+    /// De los avisos que trae la bóveda, el `updated` más reciente que este teléfono todavía NO
+    /// enseñó, o `nil`. Los que vienen quedan apuntados como enseñados (y solo esos), así un
+    /// timbre posterior no repite la misma noticia.
+    static func freshUpdate(_ notices: [VaultNotice], defaults: UserDefaults = .standard) -> VaultNotice? {
+        let key = "shownNotices"
+        let shown = Set(defaults.stringArray(forKey: key) ?? [])
+        let updated = notices.filter { $0.ev == "updated" }
+        let fresh = updated.filter { !shown.contains($0.id) }.max(by: { $0.ts < $1.ts })
+        if !updated.isEmpty { defaults.set(updated.map(\.id), forKey: key) }
+        return fresh
+    }
+
+    /// Los pedidos vivos y los avisos de todas las cuentas del teléfono. Si la bóveda renueva el
+    /// papel de una cuenta mientras tanto, SE GUARDA: emitir uno nuevo retira el anterior.
+    static func pending() async -> ([Approval], [VaultNotice]) {
+        guard let accounts = try? AccountStore.shared.list() else { return ([], []) }
+        return await withTaskGroup(of: ([Approval], [VaultNotice]).self) { group in
             for a in accounts {
                 group.addTask {
                     do {
@@ -67,12 +85,13 @@ final class NotificationService: UNNotificationServiceExtension {
                             try? AccountStore.shared.save(renewed)
                         }
                         // A ring just got here, so this phone does receive them: say so.
-                        return try await vc.approvals(notify: true)
-                    } catch { return [] }
+                        let r = try await vc.approvalsWithNotices(notify: true)
+                        return (r.items, r.notices)
+                    } catch { return ([], []) }
                 }
             }
-            var all: [Approval] = []
-            for await items in group { all += items }
+            var all: ([Approval], [VaultNotice]) = ([], [])
+            for await r in group { all.0 += r.0; all.1 += r.1 }
             return all
         }
     }

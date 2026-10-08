@@ -10,10 +10,12 @@ import androidx.core.app.NotificationCompat
 import android.util.Log
 import com.dotrino.sdk.Account
 import com.dotrino.sdk.Approval
+import com.dotrino.sdk.ApprovalsAnswer
 import com.dotrino.sdk.ProxyConnection
 import com.dotrino.sdk.RemoteAccounts
 import com.dotrino.sdk.RemoteKeys
 import com.dotrino.sdk.VaultClient
+import com.dotrino.sdk.VaultNotice
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import kotlinx.coroutines.async
@@ -40,6 +42,7 @@ class PushService : FirebaseMessagingService() {
         const val CHANNEL = "vault_trino"
         private const val PREFS = "push"
         private const val KEY_TOKEN = "fcmToken"
+        private const val KEY_SHOWN = "shownNotices"
 
         fun savedToken(ctx: Context): String? = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(KEY_TOKEN, null)
 
@@ -81,20 +84,56 @@ class PushService : FirebaseMessagingService() {
         }
 
         /**
-         * Los pedidos vivos de todas las cuentas de este teléfono, preguntando a cada bóveda. Si
-         * la bóveda renueva el papel de una cuenta mientras tanto, SE GUARDA: emitir uno nuevo
-         * retira el anterior, y perderlo dejaría la cuenta con un papel que ya no vale.
+         * LA BÓVEDA SE ACTUALIZÓ (vaultd ≥ 0.147.0). No pide nada: lo cuenta. Va en su propio
+         * aviso, para no pisar el de un pedido que siga esperando.
          */
-        suspend fun pendingRequests(ctx: Context): List<Approval> {
-            val identity = Identity.get(ctx.applicationContext)
-            val accounts = RemoteAccounts.list(identity)
-            return coroutineScope {
-                accounts.map { a -> async { runCatching { ofAccount(identity, a) }.onFailure { Log.w(TAG, "ring: ${a.deviceId}: ${it.message}") }.getOrDefault(emptyList()) } }
-                    .awaitAll().flatten()
-            }
+        fun notifyUpdated(ctx: Context, notice: VaultNotice) {
+            ensureChannel(ctx)
+            val open = Intent(ctx, MainActivity::class.java).apply { flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP }
+            val pi = PendingIntent.getActivity(ctx, 2, open, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+            val n = NotificationCompat.Builder(ctx, CHANNEL)
+                .setSmallIcon(R.drawable.ic_vault)
+                .setContentTitle(ctx.getString(R.string.notif_updated_title))
+                .setContentText(ctx.getString(R.string.notif_updated_body, notice.version))
+                .setCategory(NotificationCompat.CATEGORY_STATUS)
+                .setAutoCancel(true)
+                .setContentIntent(pi)
+                .build()
+            try { (ctx.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).notify(1002, n) } catch (_: SecurityException) {}
         }
 
-        private suspend fun ofAccount(identity: com.dotrino.sdk.IdentityClient, a: Account): List<Approval> {
+        /**
+         * De los avisos que trae la bóveda, el `updated` más reciente que este teléfono todavía
+         * NO enseñó, o `null`. Los que vienen quedan apuntados como enseñados (y solo esos: uno
+         * que la bóveda ya dejó de mandar no hace falta recordarlo), así un timbre posterior no
+         * repite la misma noticia.
+         */
+        fun freshUpdate(ctx: Context, notices: List<VaultNotice>): VaultNotice? {
+            val prefs = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            val shown = prefs.getStringSet(KEY_SHOWN, emptySet()) ?: emptySet()
+            val updated = notices.filter { it.ev == "updated" }
+            val fresh = updated.filter { it.id !in shown }.maxByOrNull { it.ts }
+            if (updated.isNotEmpty()) prefs.edit().putStringSet(KEY_SHOWN, updated.map { it.id }.toSet()).apply()
+            return fresh
+        }
+
+        /**
+         * Los pedidos vivos y los avisos de todas las cuentas de este teléfono, preguntando a
+         * cada bóveda. Si la bóveda renueva el papel de una cuenta mientras tanto, SE GUARDA:
+         * emitir uno nuevo retira el anterior, y perderlo dejaría la cuenta con un papel que ya
+         * no vale.
+         */
+        suspend fun pendingRequests(ctx: Context): ApprovalsAnswer {
+            val identity = Identity.get(ctx.applicationContext)
+            val accounts = RemoteAccounts.list(identity)
+            val all = coroutineScope {
+                accounts.map { a -> async { runCatching { ofAccount(identity, a) }.onFailure { Log.w(TAG, "ring: ${a.deviceId}: ${it.message}") }.getOrNull() } }
+                    .awaitAll().filterNotNull()
+            }
+            return ApprovalsAnswer(all.flatMap { it.items }, all.flatMap { it.notices })
+        }
+
+        private suspend fun ofAccount(identity: com.dotrino.sdk.IdentityClient, a: Account): ApprovalsAnswer {
             val keys = RemoteKeys.open(identity, a.id)
             val conn = ProxyConnection(a.proxy, "vault")   // the approver app: its rings and its queue
             var renewed: Account? = null
@@ -102,7 +141,7 @@ class PushService : FirebaseMessagingService() {
                 conn.connect()
                 conn.identify(keys)
                 // A ring just got here, so this phone does receive them: say so (see ApprovalsModel.notifiable).
-                return VaultClient(a, keys, conn) { renewed = it }.approvals(notify = true)
+                return VaultClient(a, keys, conn) { renewed = it }.approvalsWithNotices(notify = true)
             } finally {
                 conn.close()
                 renewed?.let { runCatching { RemoteAccounts.save(identity, it) }.onFailure { e -> Log.e(TAG, "ring: could not save the renewed paper: ${e.message}") } }
@@ -123,7 +162,11 @@ class PushService : FirebaseMessagingService() {
         // El timbre no trae nada: el porqué se pregunta aquí, en el teléfono. Este método corre
         // fuera del hilo principal y Android le da unos segundos; con 8 s de tope, lo que no
         // llegue a tiempo sale como el aviso genérico.
-        val pending = runBlocking { withTimeoutOrNull(8_000) { runCatching { pendingRequests(this@PushService) }.getOrNull() } }
-        notifyRequest(this, pending)
+        val answer = runBlocking { withTimeoutOrNull(8_000) { runCatching { pendingRequests(this@PushService) }.getOrNull() } }
+        // SIN PEDIDOS Y CON UNA NOTICIA NUEVA: el timbre era para contarla («tu bóveda se
+        // actualizó»), no para pedir nada. Con pedidos, mandan los pedidos, como siempre.
+        val updated = answer?.let { freshUpdate(this, it.notices) }
+        if (answer != null && answer.items.isEmpty() && updated != null) notifyUpdated(this, updated)
+        else notifyRequest(this, answer?.items)
     }
 }

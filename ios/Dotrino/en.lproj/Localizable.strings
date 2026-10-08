@@ -42,6 +42,7 @@
 "cancel" = "Cancel";
 "open_web" = "See the requests on the web";
 "req_update" = "Your vault wants to update to %1$@";
+"req_update_device" = "%1$@ wants to update to %2$@";
 "req_update_from" = "It runs %1$@ now";
 "req_update_verified" = "It is checked against its signature before installing.";
 "req_passwords" = "%1$@ wants to read a saved password";
@@ -57,6 +58,8 @@
 "passwords_hint" = "Approving a password lets that device read passwords until the vault restarts.";
 "notif_many" = "%1$d requests in your vault";
 "notif_tap" = "Tap to approve or deny.";
+"notif_updated_title" = "Your vault was updated";
+"notif_updated_body" = "It now runs %@.";
 "err_accounts_file" = "Could not read this phone's list of accounts (%1$@).";
 "ok" = "OK";
 /* Barra nativa de Pedidos: mismos textos que <dotrino-support>. */

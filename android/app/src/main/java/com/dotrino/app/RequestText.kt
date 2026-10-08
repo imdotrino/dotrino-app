@@ -11,12 +11,20 @@ import kotlinx.serialization.json.jsonPrimitive
  * system notice, so the notice says the why and never disagrees with what the screen shows.
  */
 object RequestText {
+    private const val VAULT_PRODUCT = "@dotrino/vaultd"
+
     fun who(a: Approval): String =
         if (a.label.isNotBlank()) "${a.label} (${a.deviceId})" else a.deviceId
 
     fun title(ctx: Context, a: Approval): String = when (a.kind) {
-        // The vault itself asks to install a new version (vaultd ≥ 0.130.0).
-        "update" -> ctx.getString(R.string.req_update, a.ctx?.get("version")?.jsonPrimitive?.content ?: "?")
+        // Someone asks to install a new version: the vault itself (no `product`, or its own), or
+        // a device that runs something else (an agent from npm) and says which with `ctx.product`.
+        "update" -> {
+            val version = a.ctx?.get("version")?.jsonPrimitive?.content ?: "?"
+            val product = a.ctx?.get("product")?.jsonPrimitive?.content
+            if (product.isNullOrBlank() || product == VAULT_PRODUCT) ctx.getString(R.string.req_update, version)
+            else ctx.getString(R.string.req_update_device, who(a), version)
+        }
         "write" -> ctx.getString(R.string.req_writes, who(a), a.ns)
         // The password vault: which FIELDS it wants to read (vaultd ≥ 0.136.0), never the entry.
         "passwords" -> ctx.getString(R.string.req_passwords, who(a))

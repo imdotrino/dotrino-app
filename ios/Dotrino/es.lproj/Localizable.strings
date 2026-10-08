@@ -42,6 +42,7 @@
 "cancel" = "Cancelar";
 "open_web" = "Ver los pedidos en la web";
 "req_update" = "Tu bóveda quiere actualizarse a la %1$@";
+"req_update_device" = "%1$@ quiere actualizarse a la %2$@";
 "req_update_from" = "Ahora tiene la %1$@";
 "req_update_verified" = "Se verifica contra su firma antes de instalar.";
 "req_passwords" = "%1$@ quiere leer una contraseña guardada";
@@ -57,6 +58,8 @@
 "passwords_hint" = "Al aprobar una contraseña, ese aparato puede leer contraseñas hasta que la bóveda se reinicie.";
 "notif_many" = "%1$d pedidos en tu bóveda";
 "notif_tap" = "Toca para aprobar o denegar.";
+"notif_updated_title" = "Tu bóveda se actualizó";
+"notif_updated_body" = "Ahora corre la %@.";
 "err_accounts_file" = "No se pudo leer la lista de cuentas de este teléfono (%1$@).";
 "ok" = "Aceptar";
 /* Barra nativa de Pedidos: mismos textos que <dotrino-support>. */

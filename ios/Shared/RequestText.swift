@@ -14,8 +14,14 @@ enum RequestText {
 
     static func title(_ a: Approval, _ t: T) -> String {
         switch a.kind {
-        // The vault itself asks to install a new version (vaultd ≥ 0.130.0).
-        case "update": return t("req_update", [a.ctx?["version"]?.string ?? "?"])
+        // Someone asks to install a new version: the vault itself (no `product`, or its own), or
+        // a device that runs something else (an agent from npm) and says which with `ctx.product`.
+        case "update":
+            let version = a.ctx?["version"]?.string ?? "?"
+            if let product = a.ctx?["product"]?.string, !product.isEmpty, product != "@dotrino/vaultd" {
+                return t("req_update_device", [who(a), version])
+            }
+            return t("req_update", [version])
         case "write": return t("req_writes", [who(a), a.ns])
         // The password vault: which FIELDS it wants to read (vaultd ≥ 0.136.0), never the entry.
         case "passwords": return t("req_passwords", [who(a)])

@@ -43,6 +43,7 @@
     <string name="cancel">Cancelar</string>
     <string name="open_web">Ver los pedidos en la web</string>
     <string name="req_update">Tu bóveda quiere actualizarse a la %1$s</string>
+    <string name="req_update_device">%1$s quiere actualizarse a la %2$s</string>
     <string name="req_update_from">Ahora tiene la %1$s</string>
     <string name="req_update_verified">Se verifica contra su firma antes de instalar.</string>
     <string name="req_passwords">%1$s quiere leer una contraseña guardada</string>
@@ -58,6 +59,8 @@
     <string name="passwords_hint">Al aprobar una contraseña, ese aparato puede leer contraseñas hasta que la bóveda se reinicie.</string>
     <string name="notif_many">%1$d pedidos en tu bóveda</string>
     <string name="notif_tap">Toca para aprobar o denegar.</string>
+    <string name="notif_updated_title">Tu bóveda se actualizó</string>
+    <string name="notif_updated_body">Ahora corre la %1$s.</string>
     <!-- Barra nativa de Pedidos: mismos textos que <dotrino-support>. -->
     <!-- La app de identidad (dotrino-native/docs/DISENO.md §2.2). -->
     <string name="err_accounts">No se pudieron leer las cuentas de este teléfono (%1$s).</string>

@@ -43,6 +43,7 @@
     <string name="cancel">Cancel</string>
     <string name="open_web">See the requests on the web</string>
     <string name="req_update">Your vault wants to update to %1$s</string>
+    <string name="req_update_device">%1$s wants to update to %2$s</string>
     <string name="req_update_from">It runs %1$s now</string>
     <string name="req_update_verified">It is checked against its signature before installing.</string>
     <string name="req_passwords">%1$s wants to read a saved password</string>
@@ -58,6 +59,8 @@
     <string name="passwords_hint">Approving a password lets that device read passwords until the vault restarts.</string>
     <string name="notif_many">%1$d requests in your vault</string>
     <string name="notif_tap">Tap to approve or deny.</string>
+    <string name="notif_updated_title">Your vault was updated</string>
+    <string name="notif_updated_body">It now runs %1$s.</string>
     <!-- Barra nativa de Pedidos: mismos textos que <dotrino-support>. -->
     <!-- La app de identidad (dotrino-native/docs/DISENO.md §2.2). -->
     <string name="err_accounts">Could not read this phone\'s accounts (%1$s).</string>
