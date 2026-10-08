@@ -62,6 +62,9 @@
     <string name="notif_updated_title">Tu bóveda se actualizó</string>
     <string name="notif_updated_device_title">%1$s se actualizó</string>
     <string name="notif_updated_body">Ahora corre la %1$s.</string>
+    <string name="notif_needs_root_title">Tu bóveda tiene una actualización pendiente</string>
+    <string name="notif_needs_root_device_title">%1$s tiene una actualización pendiente</string>
+    <string name="notif_needs_root_body">La %1$s necesita permisos de administrador: instálala a mano en esa máquina.</string>
     <!-- Barra nativa de Pedidos: mismos textos que <dotrino-support>. -->
     <!-- La app de identidad (dotrino-native/docs/DISENO.md §2.2). -->
     <string name="err_accounts">No se pudieron leer las cuentas de este teléfono (%1$s).</string>

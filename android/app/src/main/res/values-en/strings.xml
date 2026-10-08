@@ -62,6 +62,9 @@
     <string name="notif_updated_title">Your vault was updated</string>
     <string name="notif_updated_device_title">%1$s was updated</string>
     <string name="notif_updated_body">It now runs %1$s.</string>
+    <string name="notif_needs_root_title">Your vault has an update waiting</string>
+    <string name="notif_needs_root_device_title">%1$s has an update waiting</string>
+    <string name="notif_needs_root_body">%1$s needs administrator rights: install it by hand on that machine.</string>
     <!-- Barra nativa de Pedidos: mismos textos que <dotrino-support>. -->
     <!-- La app de identidad (dotrino-native/docs/DISENO.md §2.2). -->
     <string name="err_accounts">Could not read this phone\'s accounts (%1$s).</string>

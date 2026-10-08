@@ -21,12 +21,16 @@ final class NotificationService: UNNotificationServiceExtension {
         Task {
             let (items, notices) = await Self.pending()
             // SIN PEDIDOS Y CON UNA NOTICIA NUEVA: el timbre era para contarla («tu bóveda se
-            // actualizó», vaultd ≥ 0.147.0), no para pedir nada. Con pedidos, mandan los pedidos.
+            // actualizó», o tiene una versión que no puede instalar sola; vaultd ≥ 0.147.0), no para pedir nada. Con pedidos, mandan los pedidos.
             let updated = Self.freshUpdate(notices)
             if items.isEmpty, let updated {
-                // La bóveda, o un aparato del acta (un agente) que se nombra por su etiqueta o su ID.
-                c.title = updated.device.map { Self.t("notif_updated_device_title", [$0]) } ?? Self.t("notif_updated_title", [])
-                c.body = Self.t("notif_updated_body", [updated.version])
+                // QUIÉN: la bóveda, o un aparato del acta (un agente) que se nombra por su etiqueta
+                // o su ID. QUÉ: ya se actualizó, o hay una versión que no puede instalar sola
+                // porque necesita permisos de administrador (`update-needs-root`).
+                let needsRoot = updated.ev == Self.evNeedsRoot
+                let base = needsRoot ? "notif_needs_root" : "notif_updated"
+                c.title = updated.device.map { Self.t(base + "_device_title", [$0]) } ?? Self.t(base + "_title", [])
+                c.body = Self.t(base + "_body", [updated.version])
             } else if !items.isEmpty, let newest = items.max(by: { $0.exp < $1.exp }) {
                 if items.count == 1 {
                     c.title = RequestText.title(newest, Self.t)
@@ -57,13 +61,15 @@ final class NotificationService: UNNotificationServiceExtension {
         return args.isEmpty ? f : String(format: f, arguments: args)
     }
 
-    /// De los avisos que trae la bóveda, el `updated` más reciente que este teléfono todavía NO
-    /// enseñó, o `nil`. Los que vienen quedan apuntados como enseñados (y solo esos), así un
+    static let evNeedsRoot = "update-needs-root"
+
+    /// De los avisos que trae la bóveda, el más reciente de los que esta app sabe contar y que
+    /// este teléfono todavía NO enseñó, o `nil`. Los que vienen quedan apuntados como enseñados (y solo esos), así un
     /// timbre posterior no repite la misma noticia.
     static func freshUpdate(_ notices: [VaultNotice], defaults: UserDefaults = .standard) -> VaultNotice? {
         let key = "shownNotices"
         let shown = Set(defaults.stringArray(forKey: key) ?? [])
-        let updated = notices.filter { $0.ev == "updated" }
+        let updated = notices.filter { $0.ev == "updated" || $0.ev == evNeedsRoot }
         let fresh = updated.filter { !shown.contains($0.id) }.max(by: { $0.ts < $1.ts })
         if !updated.isEmpty { defaults.set(updated.map(\.id), forKey: key) }
         return fresh

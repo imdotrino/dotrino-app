@@ -61,6 +61,9 @@
 "notif_updated_title" = "Your vault was updated";
 "notif_updated_device_title" = "%@ was updated";
 "notif_updated_body" = "It now runs %@.";
+"notif_needs_root_title" = "Your vault has an update waiting";
+"notif_needs_root_device_title" = "%@ has an update waiting";
+"notif_needs_root_body" = "%@ needs administrator rights: install it by hand on that machine.";
 "err_accounts_file" = "Could not read this phone's list of accounts (%1$@).";
 "ok" = "OK";
 /* Barra nativa de Pedidos: mismos textos que <dotrino-support>. */

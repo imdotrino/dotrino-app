@@ -43,6 +43,8 @@ class PushService : FirebaseMessagingService() {
         private const val PREFS = "push"
         private const val KEY_TOKEN = "fcmToken"
         private const val KEY_SHOWN = "shownNotices"
+        private const val EV_UPDATED = "updated"
+        private const val EV_NEEDS_ROOT = "update-needs-root"
 
         fun savedToken(ctx: Context): String? = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(KEY_TOKEN, null)
 
@@ -84,18 +86,30 @@ class PushService : FirebaseMessagingService() {
         }
 
         /**
-         * LA BÓVEDA (O UN APARATO DEL ACTA) SE ACTUALIZÓ (vaultd ≥ 0.147.0). No pide nada: lo cuenta. Va en su propio
-         * aviso, para no pisar el de un pedido que siga esperando.
+         * LA BÓVEDA (O UN APARATO DEL ACTA) SE ACTUALIZÓ, o tiene una versión que no puede
+         * instalar sola (vaultd ≥ 0.147.0). No pide nada: lo cuenta. Va en su propio aviso, para no pisar el de un pedido que siga esperando.
          */
         fun notifyUpdated(ctx: Context, notice: VaultNotice) {
             ensureChannel(ctx)
+            // QUIÉN: la bóveda, o un aparato del acta (un agente) que se nombra por su etiqueta
+            // o su ID. QUÉ: ya se actualizó, o hay una versión que no puede instalar sola
+            // porque necesita permisos de administrador (`update-needs-root`).
+            val device = notice.device
+            val needsRoot = notice.ev == EV_NEEDS_ROOT
+            val title = when {
+                needsRoot && device != null -> ctx.getString(R.string.notif_needs_root_device_title, device)
+                needsRoot -> ctx.getString(R.string.notif_needs_root_title)
+                device != null -> ctx.getString(R.string.notif_updated_device_title, device)
+                else -> ctx.getString(R.string.notif_updated_title)
+            }
+            val body = ctx.getString(if (needsRoot) R.string.notif_needs_root_body else R.string.notif_updated_body, notice.version)
             val open = Intent(ctx, MainActivity::class.java).apply { flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP }
             val pi = PendingIntent.getActivity(ctx, 2, open, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
             val n = NotificationCompat.Builder(ctx, CHANNEL)
                 .setSmallIcon(R.drawable.ic_vault)
-                // La bóveda, o un aparato del acta (un agente) que se nombra por su etiqueta o su ID.
-                .setContentTitle(notice.device?.let { ctx.getString(R.string.notif_updated_device_title, it) } ?: ctx.getString(R.string.notif_updated_title))
-                .setContentText(ctx.getString(R.string.notif_updated_body, notice.version))
+                .setContentTitle(title)
+                .setContentText(body)
+                .setStyle(NotificationCompat.BigTextStyle().bigText(body))
                 .setCategory(NotificationCompat.CATEGORY_STATUS)
                 .setAutoCancel(true)
                 .setContentIntent(pi)
@@ -104,17 +118,17 @@ class PushService : FirebaseMessagingService() {
         }
 
         /**
-         * De los avisos que trae la bóveda, el `updated` más reciente que este teléfono todavía
-         * NO enseñó, o `null`. Los que vienen quedan apuntados como enseñados (y solo esos: uno
-         * que la bóveda ya dejó de mandar no hace falta recordarlo), así un timbre posterior no
-         * repite la misma noticia.
+         * De los avisos que trae la bóveda, el más reciente de los que esta app sabe contar y
+         * que este teléfono todavía NO enseñó, o `null`. Los que vienen quedan apuntados como
+         * enseñados (y solo esos: uno que la bóveda ya dejó de mandar no hace falta
+         * recordarlo), así un timbre posterior no repite la misma noticia.
          */
         fun freshUpdate(ctx: Context, notices: List<VaultNotice>): VaultNotice? {
             val prefs = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
             val shown = prefs.getStringSet(KEY_SHOWN, emptySet()) ?: emptySet()
-            val updated = notices.filter { it.ev == "updated" }
-            val fresh = updated.filter { it.id !in shown }.maxByOrNull { it.ts }
-            if (updated.isNotEmpty()) prefs.edit().putStringSet(KEY_SHOWN, updated.map { it.id }.toSet()).apply()
+            val known = notices.filter { it.ev == EV_UPDATED || it.ev == EV_NEEDS_ROOT }
+            val fresh = known.filter { it.id !in shown }.maxByOrNull { it.ts }
+            if (known.isNotEmpty()) prefs.edit().putStringSet(KEY_SHOWN, known.map { it.id }.toSet()).apply()
             return fresh
         }
 

@@ -61,6 +61,9 @@
 "notif_updated_title" = "Tu bóveda se actualizó";
 "notif_updated_device_title" = "%@ se actualizó";
 "notif_updated_body" = "Ahora corre la %@.";
+"notif_needs_root_title" = "Tu bóveda tiene una actualización pendiente";
+"notif_needs_root_device_title" = "%@ tiene una actualización pendiente";
+"notif_needs_root_body" = "La %@ necesita permisos de administrador: instálala a mano en esa máquina.";
 "err_accounts_file" = "No se pudo leer la lista de cuentas de este teléfono (%1$@).";
 "ok" = "Aceptar";
 /* Barra nativa de Pedidos: mismos textos que <dotrino-support>. */
