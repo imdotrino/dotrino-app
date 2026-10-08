@@ -60,6 +60,7 @@
     <string name="notif_many">%1$d requests in your vault</string>
     <string name="notif_tap">Tap to approve or deny.</string>
     <string name="notif_updated_title">Your vault was updated</string>
+    <string name="notif_updated_device_title">%1$s was updated</string>
     <string name="notif_updated_body">It now runs %1$s.</string>
     <!-- Barra nativa de Pedidos: mismos textos que <dotrino-support>. -->
     <!-- La app de identidad (dotrino-native/docs/DISENO.md §2.2). -->

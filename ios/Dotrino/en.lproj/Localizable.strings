@@ -59,6 +59,7 @@
 "notif_many" = "%1$d requests in your vault";
 "notif_tap" = "Tap to approve or deny.";
 "notif_updated_title" = "Your vault was updated";
+"notif_updated_device_title" = "%@ was updated";
 "notif_updated_body" = "It now runs %@.";
 "err_accounts_file" = "Could not read this phone's list of accounts (%1$@).";
 "ok" = "OK";

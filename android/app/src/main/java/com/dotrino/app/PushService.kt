@@ -84,7 +84,7 @@ class PushService : FirebaseMessagingService() {
         }
 
         /**
-         * LA BÓVEDA SE ACTUALIZÓ (vaultd ≥ 0.147.0). No pide nada: lo cuenta. Va en su propio
+         * LA BÓVEDA (O UN APARATO DEL ACTA) SE ACTUALIZÓ (vaultd ≥ 0.147.0). No pide nada: lo cuenta. Va en su propio
          * aviso, para no pisar el de un pedido que siga esperando.
          */
         fun notifyUpdated(ctx: Context, notice: VaultNotice) {
@@ -93,7 +93,8 @@ class PushService : FirebaseMessagingService() {
             val pi = PendingIntent.getActivity(ctx, 2, open, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
             val n = NotificationCompat.Builder(ctx, CHANNEL)
                 .setSmallIcon(R.drawable.ic_vault)
-                .setContentTitle(ctx.getString(R.string.notif_updated_title))
+                // La bóveda, o un aparato del acta (un agente) que se nombra por su etiqueta o su ID.
+                .setContentTitle(notice.device?.let { ctx.getString(R.string.notif_updated_device_title, it) } ?: ctx.getString(R.string.notif_updated_title))
                 .setContentText(ctx.getString(R.string.notif_updated_body, notice.version))
                 .setCategory(NotificationCompat.CATEGORY_STATUS)
                 .setAutoCancel(true)

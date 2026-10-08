@@ -60,6 +60,7 @@
     <string name="notif_many">%1$d pedidos en tu bóveda</string>
     <string name="notif_tap">Toca para aprobar o denegar.</string>
     <string name="notif_updated_title">Tu bóveda se actualizó</string>
+    <string name="notif_updated_device_title">%1$s se actualizó</string>
     <string name="notif_updated_body">Ahora corre la %1$s.</string>
     <!-- Barra nativa de Pedidos: mismos textos que <dotrino-support>. -->
     <!-- La app de identidad (dotrino-native/docs/DISENO.md §2.2). -->

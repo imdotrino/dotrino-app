@@ -24,7 +24,8 @@ final class NotificationService: UNNotificationServiceExtension {
             // actualizó», vaultd ≥ 0.147.0), no para pedir nada. Con pedidos, mandan los pedidos.
             let updated = Self.freshUpdate(notices)
             if items.isEmpty, let updated {
-                c.title = Self.t("notif_updated_title", [])
+                // La bóveda, o un aparato del acta (un agente) que se nombra por su etiqueta o su ID.
+                c.title = updated.device.map { Self.t("notif_updated_device_title", [$0]) } ?? Self.t("notif_updated_title", [])
                 c.body = Self.t("notif_updated_body", [updated.version])
             } else if !items.isEmpty, let newest = items.max(by: { $0.exp < $1.exp }) {
                 if items.count == 1 {

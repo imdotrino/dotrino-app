@@ -15,13 +15,13 @@ settings:
     SWIFT_VERSION: "5.0"
     DEVELOPMENT_TEAM: P7G853375S
     CODE_SIGN_STYLE: Automatic
-    MARKETING_VERSION: 0.4.10
+    MARKETING_VERSION: 0.4.11
     CURRENT_PROJECT_VERSION: 1
 packages:
   # La librería nativa del ecosistema (repo dotrino-native): cripto, cable, cuentas, almacén.
   DotrinoNative:
     url: https://github.com/imdotrino/dotrino-native
-    from: 0.31.0
+    from: 0.32.0
 targets:
   Dotrino:
     type: application

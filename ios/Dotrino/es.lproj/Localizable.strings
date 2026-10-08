@@ -59,6 +59,7 @@
 "notif_many" = "%1$d pedidos en tu bóveda";
 "notif_tap" = "Toca para aprobar o denegar.";
 "notif_updated_title" = "Tu bóveda se actualizó";
+"notif_updated_device_title" = "%@ se actualizó";
 "notif_updated_body" = "Ahora corre la %@.";
 "err_accounts_file" = "No se pudo leer la lista de cuentas de este teléfono (%1$@).";
 "ok" = "Aceptar";
