@@ -26,7 +26,7 @@ Guarda tus llaves de Dotrino en el teléfono. Una cuenta para todas tus apps.
 Identidad Dotrino guarda tus llaves de Dotrino en el chip de seguridad del teléfono y se las presta a las apps de Dotrino que tengas instaladas. Así tu cuenta es la misma en todas y solo enlazas el teléfono una vez.
 
 • Tus llaves nunca salen del teléfono.
-• Esta app no se conecta a internet: ni siquiera tiene permiso para hacerlo.
+• Desde su pantalla puedes abrir las páginas de tu perfil. La cámara solo se usa si tú la abres, para leer un código QR.
 • Solo la pueden usar las apps de Dotrino.
 • Sin anuncios y sin llevar cuenta de lo que haces. Código abierto (licencia MIT).
 
@@ -45,7 +45,7 @@ Keeps your Dotrino keys on your phone. One account for all your apps.
 Identidad Dotrino keeps your Dotrino keys in your phone's security chip and lends them to the Dotrino apps you have installed. That way your account is the same in all of them, and you link the phone only once.
 
 • Your keys never leave the phone.
-• This app does not connect to the internet: it does not even have permission to.
+• From its screen you can open your profile pages. The camera is used only when you open it, to read a QR code.
 • Only Dotrino apps can use it.
 • No ads and no record kept of what you do. Open source (MIT license).
 
