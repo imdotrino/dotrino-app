@@ -107,7 +107,7 @@ final class ApprovalsModel: ObservableObject {
             guard let a = state[id]?.account else { return }
             var conn: ProxyConnection?
             do {
-                let keys = try EnclaveKeys.open(a.id)
+                let keys = try PhoneKeys.open(a.id)
                 let c = try ProxyConnection(a.proxy, app: "vault")   // the approver app: its rings and its queue
                 conn = c
                 try await c.connect()

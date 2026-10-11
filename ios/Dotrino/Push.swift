@@ -33,7 +33,7 @@ enum Push {
 
     private static func register(_ a: Account, _ t: SealedSession.PushToken) async {
         do {
-            let keys = try EnclaveKeys.open(a.id)
+            let keys = try PhoneKeys.open(a.id)
             let c = try ProxyConnection(a.proxy, app: "vault")   // the approver app: its rings and its queue
             defer { c.close() }
             try await c.connect()
