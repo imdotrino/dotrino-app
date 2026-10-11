@@ -27,7 +27,12 @@ final class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationC
         // After pairing, the new account gets this phone's push token (the bridge is dotrino-native's).
         IdentityWebBridge.onSaved = { Push.accountAdded($0) }
         UNUserNotificationCenter.current().delegate = self
+        #if DEBUG
+        // Para capturas en el simulador: `-noPush` no pide el permiso de avisos (su diálogo tapa la pantalla).
+        if !CommandLine.arguments.contains("-noPush") { DotrinoPush.register() }
+        #else
         DotrinoPush.register()
+        #endif
         #if DEBUG
         // Para capturas en el simulador: `simctl launch <sim> com.dotrino.app -approvals` abre Pedidos.
         if let i = CommandLine.arguments.firstIndex(of: "-openURL"), i + 1 < CommandLine.arguments.count,
