@@ -11,7 +11,7 @@ Solo Google Play: en iOS no existe app de identidad (CONVENCIONES §16.2). Sale 
 | Categoría | Herramientas / Tools |
 | Precio | Gratis |
 | Anuncios | No |
-| Correo de contacto | hola@dotrino.com |
+| Correo de contacto | info@dotrino.com |
 | Sitio web | https://id.dotrino.com/ |
 | Política de privacidad | https://wiki.dotrino.com/empezar/politica-de-privacidad/ |
 

@@ -14,7 +14,7 @@ Lo que se afirma tiene que estar en la app publicada. No se promete nada que no 
 | Categoría (App Store) | Utilidades; secundaria Productividad |
 | Precio | Gratis, sin compras dentro de la app |
 | Anuncios | No |
-| Correo de contacto | hola@dotrino.com |
+| Correo de contacto | info@dotrino.com |
 | Sitio web | https://dotrino.com/ |
 | Política de privacidad (es) | https://wiki.dotrino.com/empezar/politica-de-privacidad/ |
 | Política de privacidad (en) | https://wiki.dotrino.com/en/empezar/politica-de-privacidad/ |
