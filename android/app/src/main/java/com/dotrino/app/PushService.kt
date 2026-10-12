@@ -180,6 +180,9 @@ class PushService : FirebaseMessagingService() {
         val answer = runBlocking { withTimeoutOrNull(8_000) { runCatching { pendingRequests(this@PushService) }.getOrNull() } }
         // SIN PEDIDOS Y CON UNA NOTICIA NUEVA: el timbre era para contarla («tu bóveda se
         // actualizó»), no para pedir nada. Con pedidos, mandan los pedidos, como siempre.
+        // A RING THAT NO ACCOUNT EXPLAINS may be for one that is no longer on this phone: the
+        // proxy is told which ones are left, so that one stops ringing.
+        if (answer != null && answer.items.isEmpty() && answer.notices.isEmpty()) IdentityKeysBridge.prunePushSoon(this)
         val updated = answer?.let { freshUpdate(this, it.notices) }
         if (answer != null && answer.items.isEmpty() && updated != null) notifyUpdated(this, updated)
         else notifyRequest(this, answer?.items)

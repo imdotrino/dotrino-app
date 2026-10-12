@@ -20,6 +20,9 @@ final class NotificationService: UNNotificationServiceExtension {
         lock.withLock { deliver = handler; content = c }
         Task {
             let (items, notices) = await Self.pending()
+            // A RING THAT NO ACCOUNT EXPLAINS may be for one that is no longer on this phone:
+            // the proxy is told which ones are left, so that one stops ringing.
+            if items.isEmpty, notices.isEmpty { await PushPrune.run() }
             // SIN PEDIDOS Y CON UNA NOTICIA NUEVA: el timbre era para contarla («tu bóveda se
             // actualizó», o tiene una versión que no puede instalar sola; vaultd ≥ 0.147.0), no para pedir nada. Con pedidos, mandan los pedidos.
             let updated = Self.freshUpdate(notices)

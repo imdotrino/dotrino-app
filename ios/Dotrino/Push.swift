@@ -17,12 +17,21 @@ enum Push {
     /// registration heals on the next launch).
     static func tokenArrived(_ t: SealedSession.PushToken) {
         lock.withLock { token = t }
+        PushPrune.remember(t.token)
         let accounts: [Account]
         do { accounts = try AccountStore.shared.list() } catch {
             log.warning("push: could not read the accounts: \(String(describing: error), privacy: .public)")
             return
         }
         for a in accounts { Task.detached { await register(a, t) } }
+        // An account removed while the proxy could not be reached is still subscribed there.
+        Task.detached { await PushPrune.run() }
+    }
+
+    /// An account was removed: its rings stop. It cannot unsubscribe by itself (its key is gone).
+    static func accountRemoved(_ a: Account) {
+        PushPrune.registered(at: a.proxy)   // an account from before this was remembered
+        Task.detached { await PushPrune.run() }
     }
 
     /// A new account (just paired): registered at once if the token is already known.
@@ -38,6 +47,7 @@ enum Push {
             defer { c.close() }
             try await c.connect()
             try await c.registerApnsTokenAs(keys.publickey, token: t.token, topic: t.topic, env: t.env) { try keys.sign(Canonical.stringify($0)) }
+            PushPrune.registered(at: a.proxy)
             log.info("push: registered for \(a.deviceId, privacy: .public) (\(t.env, privacy: .public))")
         } catch {
             log.warning("push for \(a.deviceId, privacy: .public) not registered: \(String(describing: error), privacy: .public)")

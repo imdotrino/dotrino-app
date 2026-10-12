@@ -26,6 +26,7 @@ final class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationC
         window?.makeKeyAndVisible()
         // After pairing, the new account gets this phone's push token (the bridge is dotrino-native's).
         IdentityWebBridge.onSaved = { Push.accountAdded($0) }
+        AccountStore.shared.onRemoved = { Push.accountRemoved($0) }
         UNUserNotificationCenter.current().delegate = self
         #if DEBUG
         // Para capturas en el simulador: `-noPush` no pide el permiso de avisos (su diálogo tapa la pantalla).

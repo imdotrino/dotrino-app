@@ -42,7 +42,7 @@ android {
         applicationId = "com.dotrino.app"
         minSdk = 31
         targetSdk = 36
-        versionCode = 32
+        versionCode = 33
         versionName = "0.4.21"
     }
 

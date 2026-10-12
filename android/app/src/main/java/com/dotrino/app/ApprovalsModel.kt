@@ -254,6 +254,7 @@ class ApprovalsModel(context: Context) {
             catch (e: Exception) { set(accountId) { it.copy(error = e.message ?: e.javaClass.simpleName) }; return@launch }
             sessions.remove(accountId)?.first?.let { runCatching { it.close() } }
             _state.update { it - accountId }
+            IdentityKeysBridge.prunePushSoon(app)   // its key is gone: only the phone can stop its rings
         }
     }
 }
