@@ -120,6 +120,17 @@ targets:
         TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Dotrino.app/Dotrino"
         BUNDLE_LOADER: "$(TEST_HOST)"
 
+  # La grabación que pide App Review: maneja la app YA INSTALADA en el teléfono (por su
+  # identificador), así que no depende de la app ni la reinstala.
+  DotrinoUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources: [DotrinoUITests]
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        PRODUCT_BUNDLE_IDENTIFIER: com.dotrino.app.uitests
+
 schemes:
   Dotrino:
     build:
@@ -127,3 +138,10 @@ schemes:
         Dotrino: all
     test:
       targets: [DotrinoTests]
+  DotrinoUITests:
+    build:
+      targets:
+        DotrinoUITests: [test]
+    test:
+      targets: [DotrinoUITests]
+
