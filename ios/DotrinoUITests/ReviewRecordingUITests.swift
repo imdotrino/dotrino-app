@@ -13,6 +13,16 @@ final class ReviewRecordingUITests: XCTestCase {
 
     override func setUp() { continueAfterFailure = true }
 
+    /// Leaves the phone on its home screen: the recording of the next run starts the moment the
+    /// test does, before the app is launched, and shows whatever was left on screen.
+    override func tearDown() { XCUIDevice.shared.press(.home) }
+
+    /// Nothing but the tearDown: run it before a take so that the take starts from the home screen.
+    func testHome() throws {
+        try XCTSkipUnless(step == "home")
+        app.terminate()
+    }
+
     /// Read-only: what is on the phone right now. Touches nothing but the tabs and the menu.
     func testLook() throws {
         try XCTSkipUnless(step == "look")
@@ -62,6 +72,7 @@ final class ReviewRecordingUITests: XCTestCase {
         try XCTSkipUnless(step == "take")
         continueAfterFailure = false
         let address = try XCTUnwrap(env["REVIEW_ADDRESS"]), password = try XCTUnwrap(env["DEMO_PASSWORD"])
+        pause(2)
         app.launch()
         pause(5)
         english()
