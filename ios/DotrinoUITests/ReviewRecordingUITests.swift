@@ -170,12 +170,14 @@ final class ReviewRecordingUITests: XCTestCase {
             if let top = mine {
                 let next = heads.filter { $0.identifier != "account-\(account)" && $0.frame.minY > top }.map { $0.frame.minY }.min() ?? .greatestFiniteMagnitude
                 let buttons = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", what + "-")).allElementsBoundByIndex
-                if let b = buttons.first(where: { $0.frame.minY > top && $0.frame.minY < next && $0.isHittable }) {
+                if let b = buttons.first(where: { $0.frame.minY > top && $0.frame.minY < next }) {
+                    // Below the fold: bring it up and look again (the frames move).
+                    if !b.isHittable { app.swipeUp(velocity: .slow); pause(2); continue }
                     pause(3)   // long enough to read the request in the recording
                     b.tap()
                     return
                 }
-            } else { app.swipeUp() }
+            } else { app.swipeDown(velocity: .slow) }
             pause(2)
         }
         XCTFail("no request to \(what) in the demo account")
