@@ -151,6 +151,20 @@ final class ReviewRecordingUITests: XCTestCase {
         XCTFail("keep the recording")
     }
 
+    /// A take leaves the phone in English: this puts every page and the native screen back in Spanish.
+    func testSpanish() throws {
+        try XCTSkipUnless(step == "spanish")
+        app.launch(); pause(5)
+        for i in 0..<3 {
+            tab(i); pause(7)
+            let es = web.buttons["ES"]
+            if es.waitForExistence(timeout: 8) { es.tap(); pause(3) }
+        }
+        tab(3); pause(3)
+        let es = app.buttons["lang-es"]; if es.waitForExistence(timeout: 5) { es.tap() }
+        pause(2)
+    }
+
     private func profileReady(timeout: TimeInterval = 25) {
         XCTAssertTrue(web.staticTexts["Your profile"].waitForExistence(timeout: timeout), "profile page")
     }
