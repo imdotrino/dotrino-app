@@ -22,8 +22,7 @@ final class ReviewRecordingUITests: XCTestCase {
         app.tabBars.buttons.element(boundBy: 1).tap()
         pause(8)
         dump("profile")
-        let menu = profileButton()
-        if menu.waitForExistence(timeout: 5) { menu.tap(); pause(2); dump("menu") }
+        openMenu(); dump("menu")
         app.tabBars.buttons.element(boundBy: 3).tap()
         pause(6)
         dump("requests")
