@@ -30,13 +30,45 @@ final class ReviewRecordingUITests: XCTestCase {
         XCTFail("keep the recording")
     }
 
-    private func profileButton() -> XCUIElement {
-        let web = app.webViews.firstMatch
-        for label in ["Mi perfil", "My profile"] {
-            let b = web.buttons[label]
-            if b.exists { return b }
-        }
-        return web.buttons["Mi perfil"]
+    /// Read-only: the create and sign-in pages, without sending either form.
+    func testProbe() throws {
+        try XCTSkipUnless(step == "probe")
+        app.launch()
+        pause(5)
+        english()
+        app.tabBars.buttons.element(boundBy: 1).tap()
+        pause(7)
+        english()
+        openMenu(); dump("menu")
+        link("Create profile").tap()
+        pause(5); dump("create")
+        web.buttons["Cancel"].tap()
+        pause(6)
+        openMenu()
+        link("Sign in").tap()
+        pause(5); dump("login")
+        app.tabBars.buttons.element(boundBy: 2).tap()
+        pause(8); dump("vault")
+        XCTFail("keep the recording")
+    }
+
+    private var web: XCUIElement { app.webViews.firstMatch }
+
+    /// The pages remember the language per site: each one is switched the first time it shows.
+    private func english() {
+        let en = web.buttons["EN"]
+        if en.waitForExistence(timeout: 8) { en.tap(); pause(3) }
+    }
+
+    private func openMenu() {
+        let b = web.otherElements.matching(NSPredicate(format: "label IN %@", ["My profile", "Mi perfil"])).firstMatch
+        XCTAssertTrue(b.waitForExistence(timeout: 10), "profile button")
+        b.tap()
+        pause(2)
+    }
+
+    private func link(_ text: String) -> XCUIElement {
+        web.links.matching(NSPredicate(format: "label CONTAINS %@", text)).firstMatch
     }
 
     private func pause(_ s: TimeInterval) { Thread.sleep(forTimeInterval: s) }
