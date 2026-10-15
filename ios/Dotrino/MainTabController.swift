@@ -23,9 +23,15 @@ final class MainTabController: UIViewController, WKNavigationDelegate, WKUIDeleg
     /// en Pedidos: no hay un alta «nativa» aparte.
     static let addAccount = URL(string: "https://vault.dotrino.com/d")!
 
+    /// Lo que la app abre por dentro: SUS páginas (las de sus pestañas y la identidad). El resto
+    /// del ecosistema —las otras apps del catálogo— va a Safari: cada una trae su moneda de
+    /// apoyo, y App Review no admite donaciones dentro de la app (3.1.1 / 3.2.2, 2026-10-15).
+    /// Los iframes (identidad, almacén) no pasan por aquí: se cargan donde estén.
+    static let ownHosts: Set<String> = ["dotrino.com", "profile.dotrino.com", "vault.dotrino.com", "id.dotrino.com"]
+
     static func isInside(_ url: URL) -> Bool {
         guard url.scheme == "https", let h = url.host else { return false }
-        return h == "dotrino.com" || h.hasSuffix(".dotrino.com")
+        return ownHosts.contains(h)
     }
 
     private enum Tab: Int { case home, profile, vault, approvals }
