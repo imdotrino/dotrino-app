@@ -70,6 +70,6 @@
     <string name="err_accounts">Could not read this phone\'s accounts (%1$s).</string>
     <string name="presence_off">Approving in this account does not ask to confirm it\'s you.</string>
     <string name="presence_on">Approving in this account asks for your fingerprint, your face or the screen lock.</string>
-    <string name="presence_turn_on">Ask to confirm when approving</string>
-    <string name="presence_turn_off">Stop asking to confirm</string>
+    <string name="presence_turn_on">Turn on fingerprint to approve</string>
+    <string name="presence_turn_off">Turn off fingerprint to approve</string>
 </resources>
