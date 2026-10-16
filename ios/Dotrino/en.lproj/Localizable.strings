@@ -46,6 +46,8 @@
 "req_update_from" = "It runs %1$@ now";
 "req_update_verified" = "It is checked against its signature before installing.";
 "req_passwords" = "%1$@ wants to read a saved password";
+"req_passwords_remove" = "%1$@ wants to delete a saved password or passkey";
+"req_passwords_change" = "%1$@ wants to change a saved password or passkey";
 "req_fields" = "Fields: %1$@";
 "req_incident" = "%1$@ failed the terminal code of %2$@ three times in a row";
 "req_incident_hint" = "Blocking keeps it out of your vault and your machines without removing it from the account. It is unblocked on the vault.";

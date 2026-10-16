@@ -26,8 +26,13 @@ object RequestText {
             else ctx.getString(R.string.req_update_device, who(a), version)
         }
         "write" -> ctx.getString(R.string.req_writes, who(a), a.ns)
-        // The password vault: which FIELDS it wants to read (vaultd ≥ 0.136.0), never the entry.
-        "passwords" -> ctx.getString(R.string.req_passwords, who(a))
+        // The password vault: WHAT it wants to do (`ctx.op`: get/remove/put/patch) — deleting a
+        // passkey said «wants to read a password» (2026-10-16) — and which FIELDS for a read.
+        "passwords" -> when (a.ctx?.get("op")?.jsonPrimitive?.content) {
+            "remove" -> ctx.getString(R.string.req_passwords_remove, who(a))
+            "put", "patch" -> ctx.getString(R.string.req_passwords_change, who(a))
+            else -> ctx.getString(R.string.req_passwords, who(a))
+        }
         // An INCIDENT (vaultd ≥ 0.142.0): a device failed the terminal code of `ns` (the reporter) three times. Block or ignore.
         "incident" -> ctx.getString(R.string.req_incident, who(a), reporter(a))
         else -> ctx.getString(R.string.req_asks, who(a), a.ns)

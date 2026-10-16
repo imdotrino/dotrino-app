@@ -47,6 +47,8 @@
     <string name="req_update_from">Ahora tiene la %1$s</string>
     <string name="req_update_verified">Se verifica contra su firma antes de instalar.</string>
     <string name="req_passwords">%1$s quiere leer una contraseña guardada</string>
+    <string name="req_passwords_remove">%1$s quiere borrar una contraseña o passkey guardada</string>
+    <string name="req_passwords_change">%1$s quiere cambiar una contraseña o passkey guardada</string>
     <string name="req_fields">Campos: %1$s</string>
     <string name="req_incident">%1$s falló la clave de la terminal de %2$s tres veces seguidas</string>
     <string name="req_incident_hint">Bloquear lo deja fuera de tu bóveda y de tus máquinas sin quitarlo de la cuenta. Se desbloquea en la bóveda.</string>
