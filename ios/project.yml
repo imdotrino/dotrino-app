@@ -16,12 +16,12 @@ settings:
     DEVELOPMENT_TEAM: P7G853375S
     CODE_SIGN_STYLE: Automatic
     MARKETING_VERSION: 0.4.13
-    CURRENT_PROJECT_VERSION: 5
+    CURRENT_PROJECT_VERSION: 6
 packages:
   # La librería nativa del ecosistema (repo dotrino-native): cripto, cable, cuentas, almacén.
   DotrinoNative:
     url: https://github.com/imdotrino/dotrino-native
-    from: 0.35.2
+    from: 0.37.0
 targets:
   Dotrino:
     type: application
