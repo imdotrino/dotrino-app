@@ -42,7 +42,7 @@ android {
         applicationId = "com.dotrino.app"
         minSdk = 31
         targetSdk = 36
-        versionCode = 36
+        versionCode = 37
         versionName = "0.4.22"
     }
 
@@ -59,7 +59,11 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            // R8: quita lo que no se usa y renombra (Play mide la «ofuscación»). Las reglas de la
+            // librería vienen con dotrino-native (consumer-rules.pro); las de la app, en proguard-rules.pro.
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             if (uploadKey != null) signingConfig = signingConfigs.getByName("release")
         }
     }
