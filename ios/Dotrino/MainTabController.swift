@@ -193,7 +193,7 @@ final class MainTabController: UIViewController, WKNavigationDelegate, WKUIDeleg
     /// nothing else to show: returns true. Otherwise the caller shows the banner.
     func onRing() -> Bool {
         guard approvalsVisible else { return false }
-        model.refreshAll()
+        model.ring()
         return true
     }
 

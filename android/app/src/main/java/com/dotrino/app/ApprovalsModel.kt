@@ -39,6 +39,7 @@ class ApprovalsModel(context: Context) {
     companion object {
         private const val TAG = "dotrino-approvals"
         const val POLL_MS = 15_000L
+        const val TRINO_GAP_MS = 5_000L
         const val CANNOT_APPROVE = "cannot-approve"
         const val NO_REPLY = "vault-no-reply"
         const val NOT_CONNECTED = "not-connected"
@@ -156,6 +157,29 @@ class ApprovalsModel(context: Context) {
     fun refreshAll() { val s = scope ?: return; for (id in _state.value.keys) s.launch { refresh(id) } }
 
     /**
+     * A RING WITH THE SCREEN OPEN: the system shows nothing, so the APP plays the trino, now —
+     * a ring means somebody is waiting (dueño, 2026-10-16: «la app es la que debe reproducir»).
+     * Waiting for the refresh to find the request was silence whenever this screen's own
+     * connection had died (a phone back from the background): the refresh had nothing to ask
+     * with. So an account without a live session is started over at once, not at its backoff.
+     */
+    fun ring() {
+        trino()
+        if (scope == null) return
+        if (_state.value.keys.any { !sessions.containsKey(it) }) { stop(); start() } else refreshAll()
+    }
+
+    /** The trino, at most once every few seconds: the ring and the refresh it causes are one request. */
+    private fun trino() {
+        val now = System.currentTimeMillis()
+        if (now - lastTrino < TRINO_GAP_MS) return
+        lastTrino = now
+        Log.i(TAG, "trino at $now")
+        com.dotrino.sdk.DotrinoRing.play(app)
+    }
+    @Volatile private var lastTrino = 0L
+
+    /**
      * Does this phone receive request notifications? The vault is told with every list: to
      * update itself it only asks for approval when some approver can actually find out
      * (vaultd ≥ 0.145.0). `false` = notifications are off for the app; `null` = allowed but
@@ -187,7 +211,7 @@ class ApprovalsModel(context: Context) {
                     set(id) { it.copy(items = items, grants = grants, confirmedAt = System.currentTimeMillis(), error = null) }
                     // A request that arrived now, live (with the screen open no system notice
                     // comes): the trino. Not on the first load, which is only opening the screen.
-                    if (before != null && loaded && items.any { it.id !in before }) com.dotrino.sdk.DotrinoRing.play(app)
+                    if (before != null && loaded && items.any { it.id !in before }) trino()
                     if (before != items.map { it.id }.toSet()) {
                         Log.i(TAG, "account ${_state.value[id]?.account?.deviceId}: ${items.size} request(s) [${items.joinToString(",") { it.id }}] at ${System.currentTimeMillis()}")
                     }

@@ -78,7 +78,7 @@ class ApprovalsScreen(
     }
 
     /** A push arrived while the screen is open: ask every vault now. */
-    fun ring() { if (visible) model.refreshAll() }
+    fun ring() { if (visible) model.ring() }
 
     // ---------------------------------------------------------------- rows
 

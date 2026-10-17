@@ -153,6 +153,25 @@ final class ApprovalsModel: ObservableObject {
         for id in state.keys { Task { await refresh(id) } }
     }
 
+    /// A RING WITH THE SCREEN OPEN: the system shows nothing, so the APP plays the trino, now —
+    /// a ring means somebody is waiting (dueño, 2026-10-16). Waiting for the refresh to find
+    /// the request was silence whenever this screen's own connection had died: an account
+    /// without a live session is started over at once, not at its backoff.
+    func ring() {
+        trino()
+        guard running else { return }
+        if state.keys.contains(where: { sessions[$0] == nil }) { stop(); start() } else { refreshAll() }
+    }
+
+    /// The trino, at most once every few seconds: the ring and the refresh it causes are one request.
+    private func trino() {
+        let now = nowMs()
+        if now - lastTrino < 5_000 { return }
+        lastTrino = now
+        DotrinoRing.play()
+    }
+    private var lastTrino: Int64 = 0
+
     /// ONE question in flight per account. A refresh asked while another is running is not
     /// sent in parallel: it runs once more when the current one ends. So answers can never
     /// arrive out of order, and a failure is never thrown away for being «old».
@@ -178,7 +197,7 @@ final class ApprovalsModel: ObservableObject {
                 let before = state[id].map { Set($0.items.map(\.id)) }
                 // A request that arrived now, live (with the screen open no system notice comes):
                 // the trino. Not on the first load, which is only opening the screen.
-                if let before, state[id]?.confirmedAt != nil, items.contains(where: { !before.contains($0.id) }) { DotrinoRing.play() }
+                if let before, state[id]?.confirmedAt != nil, items.contains(where: { !before.contains($0.id) }) { trino() }
                 set(id) {
                     $0.items = items; $0.grants = grants; $0.confirmedAt = nowMs(); $0.error = nil
                 }

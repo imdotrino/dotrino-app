@@ -56,7 +56,7 @@ class PushService : FirebaseMessagingService() {
          * El aviso. Con [pending] dice qué se pide: uno solo, su motivo como título; varios,
          * cuántos y el más reciente. Sin él (no se pudo preguntar a tiempo), el genérico.
          */
-        fun notifyRequest(ctx: Context, pending: List<Approval>? = null) {
+        fun notifyRequest(ctx: Context, pending: List<Approval>? = null, again: Boolean = false) {
             ensureChannel(ctx)
             val open = Intent(ctx, MainActivity::class.java).apply {
                 action = Intent.ACTION_VIEW
@@ -70,6 +70,8 @@ class PushService : FirebaseMessagingService() {
                 .setCategory(NotificationCompat.CATEGORY_MESSAGE)
                 .setAutoCancel(true)
                 .setContentIntent(pi)
+                // The SAME ring completing its list (another account answered later) does not sound twice.
+                .setOnlyAlertOnce(again)
             val generic = base().setContentTitle(ctx.getString(R.string.notif_title)).setContentText(ctx.getString(R.string.notif_body)).build()
             val n = if (pending.isNullOrEmpty()) generic else {
                 val newest = pending.maxBy { it.exp }
@@ -138,12 +140,13 @@ class PushService : FirebaseMessagingService() {
          * emitir uno nuevo retira el anterior, y perderlo dejaría la cuenta con un papel que ya
          * no vale.
          */
-        suspend fun pendingRequests(ctx: Context): ApprovalsAnswer {
+        suspend fun pendingRequests(ctx: Context, onAccount: (ApprovalsAnswer) -> Unit = {}): ApprovalsAnswer {
             val identity = Identity.get(ctx.applicationContext)
             val accounts = RemoteAccounts.list(identity)
             val all = coroutineScope {
-                accounts.map { a -> async { runCatching { ofAccount(identity, a) }.onFailure { Log.w(TAG, "ring: ${a.deviceId}: ${it.message}") }.getOrNull() } }
-                    .awaitAll().filterNotNull()
+                accounts.map { a -> async {
+                    runCatching { ofAccount(identity, a) }.onFailure { Log.w(TAG, "ring: ${a.deviceId}: ${it.message}") }.getOrNull()?.also(onAccount)
+                } }.awaitAll().filterNotNull()
             }
             return ApprovalsAnswer(all.flatMap { it.items }, all.flatMap { it.notices })
         }
@@ -177,7 +180,15 @@ class PushService : FirebaseMessagingService() {
         // El timbre no trae nada: el porqué se pregunta aquí, en el teléfono. Este método corre
         // fuera del hilo principal y Android le da unos segundos; con 8 s de tope, lo que no
         // llegue a tiempo sale como el aviso genérico.
-        val answer = runBlocking { withTimeoutOrNull(8_000) { runCatching { pendingRequests(this@PushService) }.getOrNull() } }
+        // AS SOON AS ONE ACCOUNT HAS A REQUEST, IT IS SAID: waiting for every account meant
+        // waiting for the slowest — one whose vault no longer answers took the whole 8 s
+        // (measured 2026-10-16: 7 s late on an emulator with old accounts).
+        val seen = java.util.concurrent.ConcurrentLinkedQueue<Approval>()
+        var shown = false
+        val early: (ApprovalsAnswer) -> Unit = { a ->
+            if (a.items.isNotEmpty()) synchronized(seen) { seen.addAll(a.items); notifyRequest(this, seen.toList(), again = shown); shown = true }
+        }
+        val answer = runBlocking { withTimeoutOrNull(8_000) { runCatching { pendingRequests(this@PushService, early) }.getOrNull() } }
         // SIN PEDIDOS Y CON UNA NOTICIA NUEVA: el timbre era para contarla («tu bóveda se
         // actualizó»), no para pedir nada. Con pedidos, mandan los pedidos, como siempre.
         // A RING THAT NO ACCOUNT EXPLAINS may be for one that is no longer on this phone: the
@@ -185,6 +196,6 @@ class PushService : FirebaseMessagingService() {
         if (answer != null && answer.items.isEmpty() && answer.notices.isEmpty()) IdentityKeysBridge.prunePushSoon(this)
         val updated = answer?.let { freshUpdate(this, it.notices) }
         if (answer != null && answer.items.isEmpty() && updated != null) notifyUpdated(this, updated)
-        else notifyRequest(this, answer?.items)
+        else if (!shown || answer?.items?.isNotEmpty() == true) notifyRequest(this, answer?.items ?: seen.toList().ifEmpty { null }, again = shown)
     }
 }
