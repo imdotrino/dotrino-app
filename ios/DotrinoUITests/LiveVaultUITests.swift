@@ -42,7 +42,10 @@ final class LiveVaultUITests: XCTestCase {
 
         // The six digits, from the line the page shows for the computer's vault.
         let line = web.staticTexts.matching(NSPredicate(format: "label BEGINSWITH 'dotrino-vault approve'")).firstMatch
-        XCTAssertTrue(line.waitForExistence(timeout: 60), "the page did not show the code")
+        if !line.waitForExistence(timeout: 60) {
+            print("PAGE TEXTS: " + web.staticTexts.allElementsBoundByIndex.map(\.label).joined(separator: " | "))
+            XCTFail("the page did not show the code"); return
+        }
         let code = try XCTUnwrap(line.label.split(separator: " ").last.map(String.init))
         XCTAssertEqual(code.count, 6, "not a code: \(line.label)")
         try get("\(codeUrl)?c=\(code)")
