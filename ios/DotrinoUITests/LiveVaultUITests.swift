@@ -13,6 +13,7 @@ import XCTest
 ///     xcodebuild -project Dotrino.xcodeproj -scheme DotrinoUITests \
 ///     -destination 'platform=iOS Simulator,id=<udid>' -only-testing:DotrinoUITests/LiveVaultUITests test
 final class LiveVaultUITests: XCTestCase {
+    private struct Stop: Error {}
     private let app = XCUIApplication(bundleIdentifier: "com.dotrino.app")
     private var env: [String: String] { ProcessInfo.processInfo.environment }
     private var web: XCUIElement { app.webViews.firstMatch }
@@ -30,11 +31,11 @@ final class LiveVaultUITests: XCTestCase {
         XCTAssertTrue(add.waitForExistence(timeout: 10), "no Add account button")
         add.tap()
         let paste = web.descendants(matching: .any).matching(NSPredicate(format: "label IN %@", ["Paste the code", "Pegar el código"])).firstMatch
-        XCTAssertTrue(paste.waitForExistence(timeout: 30), "the pairing page did not show")
+        try need(paste, 30, "the pairing page did not show")
         paste.tap()
         pause(1)
         let field = web.textViews.firstMatch
-        XCTAssertTrue(field.waitForExistence(timeout: 10), "no field to paste the invite")
+        try need(field, 10, "no field to paste the invite")
         field.tap()
         // The page takes the code itself: what follows `#v=` in the link.
         field.typeText(invite.components(separatedBy: "#v=").last ?? invite)
@@ -42,10 +43,7 @@ final class LiveVaultUITests: XCTestCase {
 
         // The six digits, from the line the page shows for the computer's vault.
         let line = web.staticTexts.matching(NSPredicate(format: "label BEGINSWITH 'dotrino-vault approve'")).firstMatch
-        if !line.waitForExistence(timeout: 60) {
-            print("PAGE TEXTS: " + web.staticTexts.allElementsBoundByIndex.map(\.label).joined(separator: " | "))
-            XCTFail("the page did not show the code"); return
-        }
+        try need(line, 60, "the page did not show the code")
         let code = try XCTUnwrap(line.label.split(separator: " ").last.map(String.init))
         XCTAssertEqual(code.count, 6, "not a code: \(line.label)")
         try get("\(codeUrl)?c=\(code)")
@@ -60,6 +58,16 @@ final class LiveVaultUITests: XCTestCase {
     }
 
     private func tab(_ i: Int) { app.tabBars.buttons.element(boundBy: i).tap() }
+
+    /// Waits for [e]; if it never shows, prints what IS on screen and stops: a UI test that
+    /// fails without saying what it saw has to be run again just to look.
+    private func need(_ e: XCUIElement, _ timeout: TimeInterval, _ what: String) throws {
+        if e.waitForExistence(timeout: timeout) { return }
+        let texts = app.descendants(matching: .any).allElementsBoundByIndex.map(\.label).filter { !$0.isEmpty }
+        print("SCREEN: " + texts.joined(separator: " | "))
+        XCTFail(what)
+        throw Stop()
+    }
 
     private func pause(_ s: TimeInterval) { Thread.sleep(forTimeInterval: s) }
 
