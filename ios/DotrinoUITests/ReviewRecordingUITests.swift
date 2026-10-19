@@ -182,7 +182,8 @@ final class ReviewRecordingUITests: XCTestCase {
 
     private func profileReady(timeout: TimeInterval = 25) {
         if !web.staticTexts["Your profile"].waitForExistence(timeout: timeout) {
-            print("SCREEN: " + app.descendants(matching: .any).allElementsBoundByIndex.map(\.label).filter { !$0.isEmpty }.joined(separator: " | "))
+            // One snapshot of the whole tree: walking the elements fails while the page still moves.
+            print("SCREEN: " + app.debugDescription.replacingOccurrences(of: "\n", with: " ¶ "))
         }
         XCTAssertTrue(web.staticTexts["Your profile"].exists, "profile page")
     }
