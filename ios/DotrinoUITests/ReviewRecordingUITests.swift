@@ -166,6 +166,8 @@ final class ReviewRecordingUITests: XCTestCase {
     }
 
     private func profileReady(timeout: TimeInterval = 25) {
+        // A device that never ran a take (the simulator) shows the page in Spanish: switch it.
+        if !web.staticTexts["Your profile"].waitForExistence(timeout: 8) { english() }
         XCTAssertTrue(web.staticTexts["Your profile"].waitForExistence(timeout: timeout), "profile page")
     }
 
