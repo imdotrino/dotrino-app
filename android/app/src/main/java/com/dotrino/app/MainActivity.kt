@@ -125,7 +125,7 @@ class MainActivity : AppCompatActivity() {
         nav = findViewById(R.id.nav)
         offline = findViewById(R.id.offline)
         findViewById<Button>(R.id.retry).setOnClickListener { offline.visibility = View.GONE; web.reload() }
-        identityMissing = !IdentityClient.isInstalled(this)
+        identityMissing = !IdentityClient.isUpToDate(this)
 
         setupWebView()
         approvals = ApprovalsScreen(this, findViewById(R.id.approvalsBox), findViewById(R.id.approvals), findViewById(R.id.approvalsList),
@@ -205,11 +205,12 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume(); resumed = true
-        // Volver de Play con la app de identidad ya instalada: se arranca de nuevo para que la
-        // página y Pedidos la encuentren desde el principio.
-        // Sin ella, el modal compartido lo explica y lleva a Play (CONVENCIONES §16.2); con
-        // «Ahora no» se cierra y vuelve a salir la próxima vez que se abra la app.
-        val hasIdentity = IdentityClient.isInstalled(this)
+        // Volver de Play con la app de identidad ya instalada (o actualizada): se arranca de nuevo
+        // para que la página y Pedidos la encuentren desde el principio.
+        // Sin ella, o con una más vieja que la que salió con dotrino-native, el modal compartido lo
+        // explica y lleva a Play (CONVENCIONES §16.2); con «Ahora no» se cierra y vuelve a salir
+        // la próxima vez que se abra la app.
+        val hasIdentity = IdentityClient.isUpToDate(this)
         if (identityMissing && hasIdentity) { identityDialog?.dismiss(); recreate(); return }
         if (!hasIdentity) {
             identityMissing = true
