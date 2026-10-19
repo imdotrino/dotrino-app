@@ -44,6 +44,8 @@ android {
         targetSdk = 36
         versionCode = 40
         versionName = "0.4.25"
+        // LiveVaultTest (src/androidTest): la app contra una bóveda real, desde smoke:native-app de dotrino-test.
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     signingConfigs {
@@ -87,4 +89,7 @@ dependencies {
     implementation("androidx.core:core-ktx:1.15.0")
     implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
     implementation("com.google.firebase:firebase-messaging")
+    androidTestImplementation("androidx.test:runner:1.6.2")
+    androidTestImplementation("androidx.test:core-ktx:1.6.1")
+    androidTestImplementation("androidx.test.ext:junit:1.2.1")
 }
