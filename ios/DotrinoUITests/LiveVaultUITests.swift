@@ -33,10 +33,11 @@ final class LiveVaultUITests: XCTestCase {
         XCTAssertTrue(paste.waitForExistence(timeout: 30), "the pairing page did not show")
         paste.tap()
         pause(1)
-        let field = web.textFields.firstMatch
+        let field = web.textViews.firstMatch
         XCTAssertTrue(field.waitForExistence(timeout: 10), "no field to paste the invite")
         field.tap()
-        field.typeText(invite)
+        // The page takes the code itself: what follows `#v=` in the link.
+        field.typeText(invite.components(separatedBy: "#v=").last ?? invite)
         web.buttons.matching(NSPredicate(format: "label IN %@", ["Connect", "Conectar"])).firstMatch.tap()
 
         // The six digits, from the line the page shows for the computer's vault.
