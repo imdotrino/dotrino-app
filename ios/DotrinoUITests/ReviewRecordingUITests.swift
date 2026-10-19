@@ -151,6 +151,21 @@ final class ReviewRecordingUITests: XCTestCase {
         XCTFail("keep the recording")
     }
 
+    /// Before a take on a device that never ran one (the simulator): every page and the native
+    /// screen in English, as the take expects. The reverse of `testSpanish`.
+    func testEnglish() throws {
+        try XCTSkipUnless(step == "english")
+        app.launch(); pause(5)
+        for i in 0..<3 {
+            tab(i); pause(7)
+            let en = web.buttons["EN"]
+            if en.waitForExistence(timeout: 8) { en.tap(); pause(3) }
+        }
+        tab(3); pause(3)
+        let en = app.buttons["lang-en"]; if en.waitForExistence(timeout: 5) { en.tap() }
+        pause(2)
+    }
+
     /// A take leaves the phone in English: this puts every page and the native screen back in Spanish.
     func testSpanish() throws {
         try XCTSkipUnless(step == "spanish")
@@ -166,8 +181,6 @@ final class ReviewRecordingUITests: XCTestCase {
     }
 
     private func profileReady(timeout: TimeInterval = 25) {
-        // A device that never ran a take (the simulator) shows the page in Spanish: switch it.
-        if !web.staticTexts["Your profile"].waitForExistence(timeout: 8) { english() }
         XCTAssertTrue(web.staticTexts["Your profile"].waitForExistence(timeout: timeout), "profile page")
     }
 
