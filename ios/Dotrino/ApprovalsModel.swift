@@ -249,7 +249,7 @@ final class ApprovalsModel: ObservableObject {
     /// network said it: it is what someone will paste in an issue.
     private static func messageOf(_ e: Error) -> String {
         if let v = e as? VaultError {
-            if v.code == "acta" || v.code == VaultClient.noApprove { return cannotApprove }
+            if v.code == "record" || v.code == VaultClient.noApprove { return cannotApprove }
             if v.code == "vault-no-reply" { return noReply }
         }
         return String(describing: e)
