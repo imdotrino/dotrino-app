@@ -21,6 +21,9 @@ Lo que se afirma tiene que estar en la app publicada. No se promete nada que no 
 | Soporte (es) | https://wiki.dotrino.com/apps/dotrino/ |
 | Soporte (en) | https://wiki.dotrino.com/en/apps/dotrino/ |
 | Derechos (App Store) | 2026 DOTRINO S.A.S. |
+| Video promocional (Play, es-419) | https://www.youtube.com/watch?v=oDXJWGe3aKI — etiquetado como IA |
+| Video promocional (Play, en-US) | https://www.youtube.com/watch?v=LAMbrqlUe8M |
+| Video (App Store) | No: las vistas previas son de 15–30 s y grabadas de la app; el explicativo no vale |
 
 ## Español
 
