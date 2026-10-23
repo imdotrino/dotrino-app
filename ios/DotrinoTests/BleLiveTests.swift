@@ -11,6 +11,7 @@ final class BleLiveTests: XCTestCase {
     private func ready() async throws -> BluetoothDirect {
         let bt = BluetoothDirect()
         bt.onLog = { print("[ble] \($0)") }
+        bt.start()
         for _ in 0..<150 where !bt.available { try await Task.sleep(nanoseconds: 100_000_000) }
         XCTAssertTrue(bt.available, "Bluetooth is off or not allowed for the app")
         return bt

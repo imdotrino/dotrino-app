@@ -221,6 +221,7 @@ final class MainTabController: UIViewController, WKNavigationDelegate, WKUIDeleg
     /// teclea en la bóveda. El Bluetooth se enciende para buscar y se apaga al terminar.
     private func discoverNearby() {
         let bt = BluetoothDirect()
+        bt.start()
         say(L("discover_searching"))
         Task { @MainActor in
             defer { bt.stop() }
