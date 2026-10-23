@@ -74,4 +74,10 @@
     <string name="presence_on">Aprobar en esta cuenta pide tu huella, tu cara o el bloqueo de pantalla.</string>
     <string name="presence_turn_on">Activar huella para aprobar</string>
     <string name="presence_turn_off">Desactivar huella para aprobar</string>
+    <string name="discover_nearby">Descubrir cerca</string>
+    <string name="discover_searching">Buscando una bóveda que esté emparejando cerca…</string>
+    <string name="discover_none">No hay ninguna bóveda emparejando cerca. En la bóveda, pulsa «Emparejar».</string>
+    <string name="discover_many">Hay más de una bóveda emparejando cerca. Usa el código QR.</string>
+    <string name="discover_unavailable">El Bluetooth no está disponible. Enciéndelo o usa el código QR.</string>
+    <string name="discover_no_permission">Sin permiso para usar el Bluetooth. Usa el código QR.</string>
 </resources>

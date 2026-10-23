@@ -74,4 +74,10 @@
     <string name="presence_on">Approving in this account asks for your fingerprint, your face or the screen lock.</string>
     <string name="presence_turn_on">Turn on fingerprint to approve</string>
     <string name="presence_turn_off">Turn off fingerprint to approve</string>
+    <string name="discover_nearby">Discover nearby</string>
+    <string name="discover_searching">Looking for a vault that is pairing nearby…</string>
+    <string name="discover_none">No vault is pairing nearby. On the vault, press «Pair».</string>
+    <string name="discover_many">More than one vault is pairing nearby. Use the QR code.</string>
+    <string name="discover_unavailable">Bluetooth is not available. Turn it on or use the QR code.</string>
+    <string name="discover_no_permission">No permission to use Bluetooth. Use the QR code.</string>
 </resources>

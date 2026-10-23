@@ -37,6 +37,8 @@ class ApprovalsScreen(
     private val swipe: SwipeRefreshLayout,
     list: RecyclerView,
     private val onAddAccount: () -> Unit,
+    /** «Descubrir cerca»: la invitación que una bóveda anuncia por Bluetooth (MainActivity.discoverNearby). */
+    private val onDiscover: () -> Unit,
     private val onOpenWeb: () -> Unit,
 ) {
     val model = ApprovalsModel(activity)
@@ -101,6 +103,7 @@ class ApprovalsScreen(
         if (m.isEmpty()) {
             rows += Note("none-accounts", s(R.string.no_accounts))
             rows += Action("add", s(R.string.add_account), onAddAccount)
+        rows += Action("discover", s(R.string.discover_nearby), onDiscover)
             rows += Action("web", s(R.string.open_web), onOpenWeb)
             return rows
         }
@@ -129,6 +132,7 @@ class ApprovalsScreen(
         if (anyRead) rows += Note("hint", s(R.string.grant_hint))
         if (anyPasswords) rows += Note("hintp", s(R.string.passwords_hint))
         rows += Action("add", s(R.string.add_account), onAddAccount)
+        rows += Action("discover", s(R.string.discover_nearby), onDiscover)
         return rows
     }
 

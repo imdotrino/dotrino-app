@@ -1,5 +1,6 @@
 import Combine
 import os
+import DotrinoNative
 import DotrinoNativeUI
 import SwiftUI
 import UIKit
@@ -90,6 +91,7 @@ final class MainTabController: UIViewController, WKNavigationDelegate, WKUIDeleg
         approvalsHost = UIHostingController(rootView: ApprovalsView(
             model: model,
             onAddAccount: { [weak self] in self?.hideApprovals(); self?.open(url: Self.addAccount) },
+            onDiscover: { [weak self] in self?.discoverNearby() },
             onOpenWeb: { [weak self] in self?.hideApprovals(); self?.open(url: Self.approvalsWeb) },
             onOpen: { [weak self] url in self?.hideApprovals(); self?.open(url: url) }))
         approvalsHost.view.backgroundColor = bg
@@ -211,6 +213,37 @@ final class MainTabController: UIViewController, WKNavigationDelegate, WKUIDeleg
     private func hideApprovals() {
         approvalsBox.isHidden = true
         model.stop()
+    }
+
+    /// «DESCUBRIR CERCA» (dotrino-vault/docs/pairing-protocol.md §1.6): la bóveda que está
+    /// emparejando anuncia su invitación por Bluetooth, y aquí se recoge y se abre en la misma
+    /// página de siempre (`/d#v=…`). Desde ahí todo sigue igual que con el QR: el código se
+    /// teclea en la bóveda. El Bluetooth se enciende para buscar y se apaga al terminar.
+    private func discoverNearby() {
+        let bt = BluetoothDirect()
+        say(L("discover_searching"))
+        Task { @MainActor in
+            defer { bt.stop() }
+            var waited = 0
+            while !bt.available && waited < 50 { try? await Task.sleep(nanoseconds: 100_000_000); waited += 1 }
+            guard bt.available, let found = try? await bt.discover(kind: "pair", timeout: 8) else { say(L("discover_unavailable")); return }
+            switch found.count {
+            case 0: say(L("discover_none"))
+            case 1:
+                guard let url = URL(string: Self.addAccount.absoluteString + "#v=" + found[0]) else { say(L("discover_none")); return }
+                presentedViewController?.dismiss(animated: true)
+                open(url: url)
+            default: say(L("discover_many"))
+            }
+        }
+    }
+
+    /// Un aviso corto con un solo botón (nada de `alert()` del navegador: es nativo).
+    private func say(_ text: String) {
+        presentedViewController?.dismiss(animated: false)
+        let a = UIAlertController(title: nil, message: text, preferredStyle: .alert)
+        a.addAction(UIAlertAction(title: "OK", style: .default))
+        present(a, animated: true)
     }
 
     private func select(_ t: Tab) { tabs.selectedItem = items[t.rawValue] }

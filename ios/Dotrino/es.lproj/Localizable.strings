@@ -78,3 +78,8 @@
 "presence_on" = "Aprobar en esta cuenta pide Face ID, Touch ID o el código del teléfono.";
 "presence_turn_on" = "Activar Face ID para aprobar";
 "presence_turn_off" = "Desactivar Face ID para aprobar";
+"discover_nearby" = "Descubrir cerca";
+"discover_searching" = "Buscando una bóveda que esté emparejando cerca…";
+"discover_none" = "No hay ninguna bóveda emparejando cerca. En la bóveda, pulsa «Emparejar».";
+"discover_many" = "Hay más de una bóveda emparejando cerca. Usa el código QR.";
+"discover_unavailable" = "El Bluetooth no está disponible. Enciéndelo, dale permiso a la app o usa el código QR.";

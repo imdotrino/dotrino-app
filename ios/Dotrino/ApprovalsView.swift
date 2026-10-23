@@ -39,6 +39,8 @@ struct ApprovalsView: View {
     /// Cambiar de idioma en la barra vuelve a pintar la pantalla.
     @ObservedObject var lang = DotrinoLang.shared
     let onAddAccount: () -> Void
+    /// «Descubrir cerca»: la invitación que una bóveda anuncia por Bluetooth (`MainTabController.discoverNearby`).
+    let onDiscover: () -> Void
     let onOpenWeb: () -> Void
     /// Un enlace del ecosistema pulsado en la barra.
     let onOpen: (URL) -> Void
@@ -77,6 +79,7 @@ struct ApprovalsView: View {
             } else if model.state.isEmpty {
                 note(L("no_accounts"))
                 action(L("add_account"), onAddAccount)
+                action(L("discover_nearby"), onDiscover)
                 action(L("open_web"), onOpenWeb)
             } else {
                 ForEach(ordered, id: \.account.id) { st in
@@ -99,6 +102,7 @@ struct ApprovalsView: View {
                 if model.state.values.contains(where: { $0.items.contains { $0.kind == "read" } }) { note(L("grant_hint")) }
                 if model.state.values.contains(where: { $0.items.contains { $0.kind == "passwords" } }) { note(L("passwords_hint")) }
                 action(L("add_account"), onAddAccount)
+                action(L("discover_nearby"), onDiscover)
             }
         }
         .listStyle(.insetGrouped)
