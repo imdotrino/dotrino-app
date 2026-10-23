@@ -42,7 +42,7 @@ Keeps your Dotrino keys on your phone. One account for all your apps.
 
 ### play.full.en
 
-Identidad Dotrino keeps your Dotrino keys in your phone's security chip and lends them to the Dotrino apps you have installed. That way your account is the same in all of them, and you link the phone only once.
+Dotrino Identity keeps your Dotrino keys in your phone's security chip and lends them to the Dotrino apps you have installed. That way your account is the same in all of them, and you link the phone only once.
 
 • Your keys never leave the phone.
 • This app does not connect to the internet: it does not even have permission to.
