@@ -21,7 +21,7 @@ packages:
   # La librería nativa del ecosistema (repo dotrino-native): cripto, cable, cuentas, almacén.
   DotrinoNative:
     url: https://github.com/imdotrino/dotrino-native
-    from: 0.44.0
+    from: 0.45.0
 targets:
   Dotrino:
     type: application
@@ -52,6 +52,8 @@ targets:
         NSCameraUsageDescription: "Para escanear el código de emparejamiento de tu bóveda."
         # «Descubrir cerca»: la invitación de emparejar llega por Bluetooth (pairing-protocol.md §1.6).
         NSBluetoothAlwaysUsageDescription: "Para encontrar tu bóveda cerca al emparejar, sin escanear ningún código."
+        NSLocalNetworkUsageDescription: "Para encontrar tu bóveda en tu red al emparejar, sin escanear ningún código."
+        NSBonjourServices: ["_dotrino._tcp"]
         # Presence (dotrino-native): antes de aprobar un pedido, el teléfono confirma que eres tú.
         NSFaceIDUsageDescription: "Para confirmar que eres tú antes de aprobar un pedido, si lo activas."
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait, UIInterfaceOrientationLandscapeLeft, UIInterfaceOrientationLandscapeRight]

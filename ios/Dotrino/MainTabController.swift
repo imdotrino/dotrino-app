@@ -216,9 +216,10 @@ final class MainTabController: UIViewController, WKNavigationDelegate, WKUIDeleg
     }
 
     /// «DESCUBRIR CERCA» (dotrino-vault/docs/pairing-protocol.md §1.6): la bóveda que está
-    /// emparejando anuncia su invitación por Bluetooth, y aquí se recoge y se abre en la misma
-    /// página de siempre (`/d#v=…`). Desde ahí todo sigue igual que con el QR: el código se
-    /// teclea en la bóveda. El Bluetooth se enciende para buscar y se apaga al terminar.
+    /// emparejando anuncia su invitación por Bluetooth y en la red local, y aquí se recoge
+    /// (`Nearby`, por los dos medios a la vez) y se abre en la misma página de siempre
+    /// (`/d#v=…`). Desde ahí todo sigue igual que con el QR: el código se teclea en la bóveda.
+    /// El Bluetooth se enciende para buscar y se apaga al terminar; sin él, solo la red local.
     private func discoverNearby() {
         let bt = BluetoothDirect()
         bt.start()
@@ -227,7 +228,7 @@ final class MainTabController: UIViewController, WKNavigationDelegate, WKUIDeleg
             defer { bt.stop() }
             var waited = 0
             while !bt.available && waited < 50 { try? await Task.sleep(nanoseconds: 100_000_000); waited += 1 }
-            guard bt.available, let found = try? await bt.discover(kind: "pair", timeout: 8) else { say(L("discover_unavailable")); return }
+            let found = await Nearby(bluetooth: bt).discover(kind: BleWire.kindPair, timeout: 8)
             switch found.count {
             case 0: say(L("discover_none"))
             case 1:

@@ -30,7 +30,9 @@ import androidx.lifecycle.lifecycleScope
 import android.widget.Toast
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import com.dotrino.sdk.BleWire
 import com.dotrino.sdk.BluetoothDirect
+import com.dotrino.sdk.Nearby
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.dotrino.sdk.IdentityClient
 import com.dotrino.sdk.ui.IdentityRequired
@@ -124,35 +126,34 @@ class MainActivity : AppCompatActivity() {
     private val askNotifications = registerForActivityResult(ActivityResultContracts.RequestPermission()) { }
 
     private val bluetoothPermissions = arrayOf(Manifest.permission.BLUETOOTH_SCAN, Manifest.permission.BLUETOOTH_CONNECT, Manifest.permission.BLUETOOTH_ADVERTISE)
-    private val askBluetooth = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { r ->
-        if (r.values.all { it }) discoverNearby() else toast(R.string.discover_no_permission)
-    }
+    // Sin permiso de Bluetooth se busca igual, solo en la red local.
+    private val askBluetooth = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { discoverNearby(asked = true) }
 
     private fun toast(id: Int) = Toast.makeText(this, id, Toast.LENGTH_LONG).show()
 
     /**
      * «DESCUBRIR CERCA» (dotrino-vault/docs/pairing-protocol.md §1.6): la bóveda que está
-     * emparejando anuncia su invitación por Bluetooth, y aquí se recoge y se abre en la misma
-     * página de siempre (`/d#v=…`). Desde ahí todo sigue igual que con el QR: el código se
-     * teclea en la bóveda. El Bluetooth se enciende para buscar y se apaga al terminar.
+     * emparejando anuncia su invitación por Bluetooth y en la red local, y aquí se recoge
+     * ([Nearby], por los dos medios a la vez) y se abre en la misma página de siempre
+     * (`/d#v=…`). Desde ahí todo sigue igual que con el QR: el código se teclea en la bóveda.
+     * El Bluetooth se enciende para buscar y se apaga al terminar.
      */
-    private fun discoverNearby() {
-        if (bluetoothPermissions.any { checkSelfPermission(it) != PackageManager.PERMISSION_GRANTED }) { askBluetooth.launch(bluetoothPermissions); return }
-        val bt = BluetoothDirect(this)
-        bt.start()
+    private fun discoverNearby(asked: Boolean = false) {
+        val btAllowed = bluetoothPermissions.all { checkSelfPermission(it) == PackageManager.PERMISSION_GRANTED }
+        if (!btAllowed && !asked) { askBluetooth.launch(bluetoothPermissions); return }
+        val bt = if (btAllowed) BluetoothDirect(this).also { it.start() } else null
         toast(R.string.discover_searching)
         lifecycleScope.launch {
             try {
                 var waited = 0
-                while (!bt.available && waited < 5000) { delay(100); waited += 100 }
-                if (!bt.available) { toast(R.string.discover_unavailable); return@launch }
-                val found = bt.discover("pair", 8000)
+                while (bt != null && !bt.available && waited < 5000) { delay(100); waited += 100 }
+                val found = Nearby(this@MainActivity, bt).discover(BleWire.KIND_PAIR, 8000)
                 when (found.size) {
                     0 -> toast(R.string.discover_none)
                     1 -> { approvals.hide(); web.loadUrl("$ADD_ACCOUNT#v=${found[0]}") }
                     else -> toast(R.string.discover_many)
                 }
-            } finally { bt.stop() }
+            } finally { bt?.stop() }
         }
     }
 

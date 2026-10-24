@@ -80,6 +80,5 @@
 "presence_turn_off" = "Turn off Face ID to approve";
 "discover_nearby" = "Discover nearby";
 "discover_searching" = "Looking for a vault that is pairing nearby…";
-"discover_none" = "No vault is pairing nearby. On the vault, press «Pair».";
+"discover_none" = "No vault is pairing nearby or on your network. On the vault, press «Pair».";
 "discover_many" = "More than one vault is pairing nearby. Use the QR code.";
-"discover_unavailable" = "Bluetooth is not available. Turn it on, allow it for the app or use the QR code.";
