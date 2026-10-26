@@ -38,7 +38,6 @@ import java.util.concurrent.ConcurrentHashMap
 class ApprovalsModel(context: Context) {
     companion object {
         private const val TAG = "dotrino-approvals"
-        const val POLL_MS = 15_000L
         const val TRINO_GAP_MS = 5_000L
         const val CANNOT_APPROVE = "cannot-approve"
         const val NO_REPLY = "vault-no-reply"
@@ -104,8 +103,10 @@ class ApprovalsModel(context: Context) {
             }
             for (a in accounts) s.launch { session(a) }
         }
-        // Safety net: a notice lost on the way should not leave a request unseen.
-        s.launch { while (isActive) { delay(POLL_MS); refreshAll() } }
+        // NO POLLING (dueño, 2026-10-26). The list is asked when the screen opens or comes back
+        // from the background (a new session), when a session reconnects, on the vault's notice,
+        // on a ring and on pull-to-refresh. A poll every 15 s was a message to the account each
+        // time, and every one of them rang the hosted vault awake and kept it from sleeping.
     }
 
     /** Closes every session. Called when the screen is no longer visible. */
@@ -194,7 +195,7 @@ class ApprovalsModel(context: Context) {
      * ONE question in flight per account. A refresh asked while another is running is not
      * sent in parallel: it runs once more when the current one ends. So answers can never
      * arrive out of order, and a failure is never thrown away for being «old» — which is
-     * what happened before: against a vault that does not answer, every 15 s timeout was
+     * what happened before: against a vault that does not answer, every timeout was
      * overtaken by the next poll and discarded, and the screen said nothing at all.
      */
     private suspend fun refresh(id: String) {

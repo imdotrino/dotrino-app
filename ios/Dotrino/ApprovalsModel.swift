@@ -16,7 +16,6 @@ let log = Logger(subsystem: "com.dotrino.app", category: "approvals")
 /// a second and vanish on the web. (Same model as Android's `ApprovalsModel.kt`.)
 @MainActor
 final class ApprovalsModel: ObservableObject {
-    static let pollSeconds: UInt64 = 15
     static let cannotApprove = "cannot-approve"
     static let noReply = "vault-no-reply"
     static let notConnected = "not-connected"
@@ -78,14 +77,10 @@ final class ApprovalsModel: ObservableObject {
             return (a.id, st)
         })
         for a in accounts { tasks.append(Task { await self.session(a.id) }) }
-        // Safety net: a notice lost on the way should not leave a request unseen.
-        tasks.append(Task {
-            while !Task.isCancelled {
-                try? await Task.sleep(nanoseconds: Self.pollSeconds * 1_000_000_000)
-                if Task.isCancelled { return }
-                self.refreshAll()
-            }
-        })
+        // NO POLLING (dueño, 2026-10-26). The list is asked when the screen opens or comes back
+        // from the background (a new session), when a session reconnects, on the vault's notice,
+        // on a ring and on pull-to-refresh. A poll every 15 s was a message to the account each
+        // time, and every one of them rang the hosted vault awake and kept it from sleeping.
     }
 
     /// Closes every session. Called when the screen is no longer visible.
