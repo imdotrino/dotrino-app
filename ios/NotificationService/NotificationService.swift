@@ -96,6 +96,7 @@ final class NotificationService: UNNotificationServiceExtension {
                         }
                         // A ring just got here, so this phone does receive them: say so.
                         let r = try await vc.approvalsWithNotices(notify: true)
+                        LogAnchors.check(accountId: a.id, notices: r.notices)
                         return (r.items, r.notices)
                     } catch { return ([], []) }
                 }

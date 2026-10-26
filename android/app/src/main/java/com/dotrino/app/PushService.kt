@@ -145,13 +145,13 @@ class PushService : FirebaseMessagingService() {
             val accounts = RemoteAccounts.list(identity)
             val all = coroutineScope {
                 accounts.map { a -> async {
-                    runCatching { ofAccount(identity, a) }.onFailure { Log.w(TAG, "ring: ${a.deviceId}: ${it.message}") }.getOrNull()?.also(onAccount)
+                    runCatching { ofAccount(ctx, identity, a) }.onFailure { Log.w(TAG, "ring: ${a.deviceId}: ${it.message}") }.getOrNull()?.also(onAccount)
                 } }.awaitAll().filterNotNull()
             }
             return ApprovalsAnswer(all.flatMap { it.items }, all.flatMap { it.notices })
         }
 
-        private suspend fun ofAccount(identity: com.dotrino.sdk.IdentityClient, a: Account): ApprovalsAnswer {
+        private suspend fun ofAccount(ctx: Context, identity: com.dotrino.sdk.IdentityClient, a: Account): ApprovalsAnswer {
             val keys = RemoteKeys.open(identity, a.id)
             val conn = ProxyConnection(a.proxy, "vault")   // the approver app: its rings and its queue
             var renewed: Account? = null
@@ -159,7 +159,9 @@ class PushService : FirebaseMessagingService() {
                 conn.connect()
                 conn.identify(keys)
                 // A ring just got here, so this phone does receive them: say so (see ApprovalsModel.notifiable).
-                return VaultClient(a, keys, conn) { renewed = it }.approvalsWithNotices(notify = true)
+                val answer = VaultClient(a, keys, conn) { renewed = it }.approvalsWithNotices(notify = true)
+                runCatching { LogAnchors.check(ctx, a.id, answer.notices) }.onFailure { Log.w(TAG, "log anchor: ${it.message}") }
+                return answer
             } finally {
                 conn.close()
                 renewed?.let { runCatching { RemoteAccounts.save(identity, it) }.onFailure { e -> Log.e(TAG, "ring: could not save the renewed paper: ${e.message}") } }

@@ -187,7 +187,10 @@ final class ApprovalsModel: ObservableObject {
             again.remove(id)
             guard let vc = sessions[id]?.vault else { return }
             do {
-                let items = try await vc.approvals(notify: await Self.notifiable())
+                let answer = try await vc.approvalsWithNotices(notify: await Self.notifiable())
+                let items = answer.items
+                // EL ANCLA DE LA BITÁCORA viaja callada: se lee aquí, con la lista.
+                LogAnchors.check(accountId: id, notices: answer.notices)
                 let grants = (try? await vc.grants()) ?? state[id]?.grants ?? []
                 let before = state[id].map { Set($0.items.map(\.id)) }
                 // A request that arrived now, live (with the screen open no system notice comes):

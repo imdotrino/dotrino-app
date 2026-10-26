@@ -78,4 +78,6 @@
     <string name="discover_searching">Buscando una bóveda que esté emparejando cerca…</string>
     <string name="discover_none">No hay ninguna bóveda emparejando cerca ni en tu red. En la bóveda, pulsa «Emparejar».</string>
     <string name="discover_many">Hay más de una bóveda emparejando cerca. Usa el código QR.</string>
+    <string name="notif_log_cut_title">Tu bóveda perdió registros</string>
+    <string name="notif_log_cut_body">La bitácora de tu bóveda tiene menos entradas de las que ya viste, o le cambiaron las últimas. Alguien pudo borrar lo que pasó. Revisa esa máquina.</string>
 </resources>

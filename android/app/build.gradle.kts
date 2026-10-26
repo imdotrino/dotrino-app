@@ -42,8 +42,8 @@ android {
         applicationId = "com.dotrino.app"
         minSdk = 31
         targetSdk = 36
-        versionCode = 43
-        versionName = "0.4.28"
+        versionCode = 44
+        versionName = "0.4.29"
         // LiveVaultTest (src/androidTest): la app contra una bóveda real, desde smoke:native-app de dotrino-test.
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
