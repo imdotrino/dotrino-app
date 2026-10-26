@@ -205,7 +205,10 @@ class ApprovalsModel(context: Context) {
                 again.remove(id)
                 val vc = sessions[id]?.second ?: return
                 try {
-                    val items = vc.approvals(notify = notifiable())
+                    val answer = vc.approvalsWithNotices(notify = notifiable())
+                    val items = answer.items
+                    // EL ANCLA DE LA BITÁCORA viaja callada: se lee aquí, con la lista.
+                    runCatching { LogAnchors.check(app, id, answer.notices) }.onFailure { Log.w(TAG, "log anchor: ${it.message}") }
                     val grants = runCatching { vc.grants() }.getOrElse { _state.value[id]?.grants ?: emptyList() }
                     val before = _state.value[id]?.items?.map { it.id }?.toSet()
                     val loaded = _state.value[id]?.confirmedAt != null

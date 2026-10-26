@@ -78,4 +78,6 @@
     <string name="discover_searching">Looking for a vault that is pairing nearby…</string>
     <string name="discover_none">No vault is pairing nearby or on your network. On the vault, press «Pair».</string>
     <string name="discover_many">More than one vault is pairing nearby. Use the QR code.</string>
+    <string name="notif_log_cut_title">Your vault lost records</string>
+    <string name="notif_log_cut_body">Your vault\'s log has fewer entries than you already saw, or its last ones were changed. Someone may have erased what happened. Check that machine.</string>
 </resources>

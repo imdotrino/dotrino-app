@@ -82,3 +82,5 @@
 "discover_searching" = "Looking for a vault that is pairing nearby…";
 "discover_none" = "No vault is pairing nearby or on your network. On the vault, press «Pair».";
 "discover_many" = "More than one vault is pairing nearby. Use the QR code.";
+"notif_log_cut_title" = "Your vault lost records";
+"notif_log_cut_body" = "Your vault's log has fewer entries than you already saw, or its last ones were changed. Someone may have erased what happened. Check that machine.";
