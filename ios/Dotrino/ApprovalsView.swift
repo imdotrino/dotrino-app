@@ -187,7 +187,7 @@ struct ApprovalsView: View {
         } else if a.kind == "update" {
             if let from = ctx?["from"]?.string { detail = L("req_update_from", from) }
             sub = (L("req_update_verified"), Palette.muted)
-        } else if a.kind == "write", let ctx {
+        } else if a.kind == "write" || a.kind == "reveal", let ctx {
             detail = L("req_keys", (ctx["keys"]?.array ?? []).compactMap { $0.string }.joined(separator: ", "))
         } else if let ctx {
             detail = L("req_cmd", commandOf(ctx))

@@ -15,6 +15,7 @@
 "acct_phone" = "este teléfono: %1$@";
 "req_asks" = "%1$@ pide tus claves de %2$@";
 "req_writes" = "%1$@ quiere guardar variables en %2$@";
+"req_reveals" = "%1$@ quiere VER el valor de una variable de %2$@";
 "req_cmd" = "Está ejecutando: %1$@";
 "req_cwd" = "desde %1$@";
 "req_keys" = "Variables: %1$@";

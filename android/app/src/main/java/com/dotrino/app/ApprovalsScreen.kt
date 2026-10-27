@@ -247,7 +247,7 @@ class ApprovalsScreen(
                     sub.visibility = View.VISIBLE; sub.text = s(R.string.req_update_verified)
                     sub.setTextColor(ContextCompat.getColor(activity, R.color.muted))
                 }
-                a.kind == "write" && ctx != null -> {
+                (a.kind == "write" || a.kind == "reveal") && ctx != null -> {
                     val keys = (ctx["keys"] as? JsonArray)?.mapNotNull { (it as? JsonPrimitive)?.content } ?: emptyList()
                     detail.text = s(R.string.req_keys, keys.joinToString(", ")); sub.visibility = View.GONE
                 }

@@ -26,6 +26,8 @@ object RequestText {
             else ctx.getString(R.string.req_update_device, who(a), version)
         }
         "write" -> ctx.getString(R.string.req_writes, who(a), a.ns)
+        // The console wants to SEE a private value (vaultd ≥ 0.179.0). One approval, one value.
+        "reveal" -> ctx.getString(R.string.req_reveals, who(a), a.ns)
         // The password vault: WHAT it wants to do (`ctx.op`: get/remove/put/patch) — deleting a
         // passkey said «wants to read a password» (2026-10-16) — and which FIELDS for a read.
         "passwords" -> when (a.ctx?.get("op")?.jsonPrimitive?.content) {

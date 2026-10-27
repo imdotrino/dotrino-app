@@ -16,6 +16,7 @@
     <string name="acct_phone">este teléfono: %1$s</string>
     <string name="req_asks">%1$s pide tus claves de %2$s</string>
     <string name="req_writes">%1$s quiere guardar variables en %2$s</string>
+    <string name="req_reveals">%1$s quiere VER el valor de una variable de %2$s</string>
     <string name="req_cmd">Está ejecutando: %1$s</string>
     <string name="req_cwd">desde %1$s</string>
     <string name="req_keys">Variables: %1$s</string>

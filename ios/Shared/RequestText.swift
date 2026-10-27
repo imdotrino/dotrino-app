@@ -23,6 +23,8 @@ enum RequestText {
             }
             return t("req_update", [version])
         case "write": return t("req_writes", [who(a), a.ns])
+        // The console wants to SEE a private value (vaultd ≥ 0.179.0). One approval, one value.
+        case "reveal": return t("req_reveals", [who(a), a.ns])
         // The password vault: WHAT it wants to do (`ctx.op`: get/remove/put/patch) — deleting a
         // passkey said «wants to read a password» (2026-10-16) — and which FIELDS for a read.
         case "passwords":
