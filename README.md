@@ -15,7 +15,7 @@ Lo que aporta ser nativa, y el navegador no da:
 
 La pestaña **Pedidos** es nativa: no pasa por el WebView. Cada cuenta en la que el teléfono
 aprueba tiene **su propia llave en el Android Keystore** (firma ECDSA + cifrado ECDH P-256,
-no extraíbles), y es un aparato más del acta de esa cuenta con `+aprueba`.
+no extraíbles), y es un aparato más del acta de esa cuenta con `+approve`.
 
 - **Multicuenta:** una sección por cuenta con su nombre, en orden fijo. Cada una mantiene una
   conexión al proxio mientras la pantalla está a la vista, así que un pedido llega en vivo
@@ -29,7 +29,7 @@ no extraíbles), y es un aparato más del acta de esa cuenta con `+aprueba`.
   que aprueba aquí: el teléfono es un solo aparato del acta, con su perfil y sus pedidos.
 - **Alta:** Pedidos → *Añadir cuenta* abre `vault.dotrino.com/d`, el emparejamiento de
   siempre. Al terminar, la identidad le pasa la cuenta a la app (`save`) y aparece aquí.
-  Después, en la bóveda: `dotrino-vault caps <ID> +aprueba`.
+  Después, en la bóveda: `dotrino-vault caps <ID> +approve`.
 - **Aprobar puede pedir confirmar que eres tú** (Android 0.4.15, iOS 0.4.7): huella, cara o el
   bloqueo de pantalla, con `Presence` de `dotrino-native` ≥ 0.25.0. **Apagado por defecto**: se
   enciende por cuenta, al pie de cada una, y encenderlo o apagarlo también lo confirma. Denegar

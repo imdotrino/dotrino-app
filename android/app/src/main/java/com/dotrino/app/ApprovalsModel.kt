@@ -261,7 +261,7 @@ class ApprovalsModel(context: Context) {
 
     /**
      * `cannot-approve` is the one the screen translates and explains (the record does not let
-     * this key approve yet: `+aprueba` is missing). Anything else is shown as the vault or the
+     * this key approve yet: `+approve` is missing). Anything else is shown as the vault or the
      * network said it: it is what someone will paste in an issue.
      */
     private fun messageOf(e: Exception): String = when {
