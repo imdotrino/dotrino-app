@@ -62,6 +62,10 @@
     <string name="passwords_hint">Al aprobar una contraseña, ese aparato puede leer contraseñas hasta que la bóveda se reinicie.</string>
     <string name="notif_many">%1$d pedidos en tu bóveda</string>
     <string name="notif_tap">Toca para aprobar o denegar.</string>
+    <string name="notif_delivered_passwords_title">%1$s se llevó una contraseña</string>
+    <string name="notif_delivered_secrets_title">%1$s se llevó las claves de %2$s</string>
+    <string name="notif_delivered_body">Sin pedir permiso: este aparato lo tiene concedido. Si no lo reconoces, quítaselo desde la bóveda.</string>
+    <string name="notif_delivered_generic">Un aparato usó tus claves</string>
     <string name="notif_updated_title">Tu bóveda se actualizó</string>
     <string name="notif_updated_device_title">%1$s se actualizó</string>
     <string name="notif_updated_body">Ahora corre la %1$s.</string>

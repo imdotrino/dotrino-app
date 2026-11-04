@@ -16,6 +16,7 @@ import com.dotrino.sdk.RemoteAccounts
 import com.dotrino.sdk.RemoteKeys
 import com.dotrino.sdk.VaultClient
 import com.dotrino.sdk.VaultNotice
+import com.dotrino.sdk.VaultRing
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import kotlinx.coroutines.async
@@ -45,6 +46,7 @@ class PushService : FirebaseMessagingService() {
         private const val KEY_SHOWN = "shownNotices"
         private const val EV_UPDATED = "updated"
         private const val EV_NEEDS_ROOT = "update-needs-root"
+        private const val EV_DELIVERED = "delivered"
 
         fun savedToken(ctx: Context): String? = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(KEY_TOKEN, null)
 
@@ -92,6 +94,7 @@ class PushService : FirebaseMessagingService() {
          * instalar sola (vaultd ≥ 0.147.0). No pide nada: lo cuenta. Va en su propio aviso, para no pisar el de un pedido que siga esperando.
          */
         fun notifyUpdated(ctx: Context, notice: VaultNotice) {
+            if (notice.ev == EV_DELIVERED) return notifyDelivered(ctx, notice)
             ensureChannel(ctx)
             // QUIÉN: la bóveda, o un aparato del acta (un agente) que se nombra por su etiqueta
             // o su ID. QUÉ: ya se actualizó, o hay una versión que no puede instalar sola
@@ -120,6 +123,55 @@ class PushService : FirebaseMessagingService() {
         }
 
         /**
+         * UN APARATO DESATENDIDO SE LLEVÓ CLAVES O UNA CONTRASEÑA (vaultd ≥ 0.190.0). No pidió
+         * permiso porque tiene `unattended`; esto lo cuenta. Nada que aprobar: abre la app.
+         */
+        fun notifyDelivered(ctx: Context, notice: VaultNotice) {
+            ensureChannel(ctx)
+            val who = notice.device ?: "?"
+            val title = if (notice.kind == "passwords") ctx.getString(R.string.notif_delivered_passwords_title, who)
+                else ctx.getString(R.string.notif_delivered_secrets_title, who, notice.ns ?: "?")
+            val body = ctx.getString(R.string.notif_delivered_body)
+            val open = Intent(ctx, MainActivity::class.java).apply { flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP }
+            val pi = PendingIntent.getActivity(ctx, 3, open, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+            val generic = NotificationCompat.Builder(ctx, CHANNEL).setSmallIcon(R.drawable.ic_vault)
+                .setContentTitle(ctx.getString(R.string.notif_delivered_generic)).build()
+            val n = NotificationCompat.Builder(ctx, CHANNEL)
+                .setSmallIcon(R.drawable.ic_vault)
+                .setContentTitle(title)
+                .setContentText(body)
+                .setStyle(NotificationCompat.BigTextStyle().bigText(body))
+                .setCategory(NotificationCompat.CATEGORY_STATUS)
+                .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
+                .setPublicVersion(generic)
+                .setAutoCancel(true)
+                .setContentIntent(pi)
+                .build()
+            try { (ctx.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).notify(1003, n) } catch (_: SecurityException) {}
+        }
+
+        /**
+         * EL ASUNTO SELLADO DEL TIMBRE (vaultd ≥ 0.190.0): lo abre la llave de alguna cuenta de
+         * este teléfono, sin red. `null` si no vino o no es para ninguna (cuenta que ya no está).
+         */
+        suspend fun ringSubject(ctx: Context, sealed: String?): kotlinx.serialization.json.JsonObject? {
+            if (sealed.isNullOrBlank()) return null
+            val identity = Identity.get(ctx.applicationContext)
+            for (a in RemoteAccounts.list(identity)) {
+                val keys = runCatching { RemoteKeys.open(identity, a.id) }.getOrNull() ?: continue
+                VaultRing.open(sealed, keys)?.let { return it }
+            }
+            return null
+        }
+
+        /** Apunta un aviso como ya enseñado (lo contó el asunto), sin olvidar los demás. */
+        fun markShown(ctx: Context, id: String) {
+            val prefs = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            val shown = prefs.getStringSet(KEY_SHOWN, emptySet()) ?: emptySet()
+            prefs.edit().putStringSet(KEY_SHOWN, shown + id).apply()
+        }
+
+        /**
          * De los avisos que trae la bóveda, el más reciente de los que esta app sabe contar y
          * que este teléfono todavía NO enseñó, o `null`. Los que vienen quedan apuntados como
          * enseñados (y solo esos: uno que la bóveda ya dejó de mandar no hace falta
@@ -128,7 +180,7 @@ class PushService : FirebaseMessagingService() {
         fun freshUpdate(ctx: Context, notices: List<VaultNotice>): VaultNotice? {
             val prefs = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
             val shown = prefs.getStringSet(KEY_SHOWN, emptySet()) ?: emptySet()
-            val known = notices.filter { it.ev == EV_UPDATED || it.ev == EV_NEEDS_ROOT }
+            val known = notices.filter { it.ev == EV_UPDATED || it.ev == EV_NEEDS_ROOT || it.ev == EV_DELIVERED }
             val fresh = known.filter { it.id !in shown }.maxByOrNull { it.ts }
             if (known.isNotEmpty()) prefs.edit().putStringSet(KEY_SHOWN, known.map { it.id }.toSet()).apply()
             return fresh
@@ -187,8 +239,19 @@ class PushService : FirebaseMessagingService() {
         // (measured 2026-10-16: 7 s late on an emulator with old accounts).
         val seen = java.util.concurrent.ConcurrentLinkedQueue<Approval>()
         var shown = false
+        // EL ASUNTO, ANTES QUE NADA (dueño, 2026-11-04: «que al menos tengan asunto, para ver
+        // quién solicita qué»). Viene sellado a este teléfono en el timbre y se abre sin red: el
+        // aviso dice el porqué aunque la bóveda tarde. La lista, que llega después, manda.
+        val subject = runBlocking { withTimeoutOrNull(3_000) { runCatching { ringSubject(this@PushService, message.data["sealed"]) }.getOrNull() } }
+        subject?.let { VaultRing.approval(it) }?.let { a -> synchronized(seen) { seen.add(a); notifyRequest(this, seen.toList()); shown = true } }
+        val subjectNotice = subject?.let { VaultRing.notice(it) }
+        if (subjectNotice != null) { notifyUpdated(this, subjectNotice); markShown(this, subjectNotice.id) }
         val early: (ApprovalsAnswer) -> Unit = { a ->
-            if (a.items.isNotEmpty()) synchronized(seen) { seen.addAll(a.items); notifyRequest(this, seen.toList(), again = shown); shown = true }
+            if (a.items.isNotEmpty()) synchronized(seen) {
+                // El pedido del asunto es el mismo que trae la lista: no se cuenta dos veces.
+                val ids = a.items.map { it.id }.toSet(); seen.removeAll { it.id in ids }
+                seen.addAll(a.items); notifyRequest(this, seen.toList(), again = shown); shown = true
+            }
         }
         val answer = runBlocking { withTimeoutOrNull(8_000) { runCatching { pendingRequests(this@PushService, early) }.getOrNull() } }
         // SIN PEDIDOS Y CON UNA NOTICIA NUEVA: el timbre era para contarla («tu bóveda se
@@ -198,6 +261,12 @@ class PushService : FirebaseMessagingService() {
         if (answer != null && answer.items.isEmpty() && answer.notices.isEmpty()) IdentityKeysBridge.prunePushSoon(this)
         val updated = answer?.let { freshUpdate(this, it.notices) }
         if (answer != null && answer.items.isEmpty() && updated != null) notifyUpdated(this, updated)
-        else if (!shown || answer?.items?.isNotEmpty() == true) notifyRequest(this, answer?.items ?: seen.toList().ifEmpty { null }, again = shown)
+        else if (answer?.items?.isNotEmpty() == true) notifyRequest(this, answer.items, again = shown)
+        // «TU BÓVEDA TIENE UN PEDIDO» SOLO SI PUEDE HABERLO. Antes salía también cuando la lista
+        // llegaba VACÍA —un timbre de «se actualizó» ya contado, o de un aviso que esta app no
+        // sabe pintar—, y el dueño veía pedidos de aprobación de aparatos con `unattended` que
+        // no habían pedido nada (2026-11-04). Ahora el genérico es solo para «no pude preguntar»
+        // (sin respuesta a tiempo) y sin asunto que lo explique.
+        else if (answer == null && !shown && subjectNotice == null) notifyRequest(this, null)
     }
 }

@@ -62,6 +62,11 @@
 "notif_many" = "%1$d requests in your vault";
 "notif_tap" = "Tap to approve or deny.";
 "notif_updated_title" = "Your vault was updated";
+"notif_delivered_passwords_title" = "%@ took a password";
+"notif_delivered_secrets_title" = "%1$@ took the keys of %2$@";
+"notif_delivered_body" = "Without asking: this device is allowed to. If you do not recognise it, take that away from the vault.";
+"notif_nothing_title" = "News from your vault";
+"notif_nothing_body" = "Nothing to approve. Tap to see.";
 "notif_updated_device_title" = "%@ was updated";
 "notif_updated_body" = "It now runs %@.";
 "notif_needs_root_title" = "Your vault has an update waiting";

@@ -62,6 +62,11 @@
 "notif_many" = "%1$d pedidos en tu bóveda";
 "notif_tap" = "Toca para aprobar o denegar.";
 "notif_updated_title" = "Tu bóveda se actualizó";
+"notif_delivered_passwords_title" = "%@ se llevó una contraseña";
+"notif_delivered_secrets_title" = "%1$@ se llevó las claves de %2$@";
+"notif_delivered_body" = "Sin pedir permiso: este aparato lo tiene concedido. Si no lo reconoces, quítaselo desde la bóveda.";
+"notif_nothing_title" = "Novedades en tu bóveda";
+"notif_nothing_body" = "No hay nada que aprobar. Toca para ver.";
 "notif_updated_device_title" = "%@ se actualizó";
 "notif_updated_body" = "Ahora corre la %@.";
 "notif_needs_root_title" = "Tu bóveda tiene una actualización pendiente";

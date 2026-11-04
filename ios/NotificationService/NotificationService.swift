@@ -18,22 +18,22 @@ final class NotificationService: UNNotificationServiceExtension {
     override func didReceive(_ request: UNNotificationRequest, withContentHandler handler: @escaping (UNNotificationContent) -> Void) {
         let c = (request.content.mutableCopy() as? UNMutableNotificationContent) ?? UNMutableNotificationContent()
         lock.withLock { deliver = handler; content = c }
+        // EL ASUNTO, ANTES QUE NADA (dueño, 2026-11-04: «que al menos tengan asunto, para ver
+        // quién solicita qué»). Viene sellado a este teléfono en el timbre (vaultd ≥ 0.190.0) y
+        // se abre sin red: la alerta dice el porqué aunque la bóveda no conteste a tiempo.
+        let subject = Self.subject(request.content.userInfo["sealed"] as? String)
+        if let s = subject { Self.apply(s, to: c) }
         Task {
-            let (items, notices) = await Self.pending()
+            let (items, notices, answered) = await Self.pending()
             // A RING THAT NO ACCOUNT EXPLAINS may be for one that is no longer on this phone:
             // the proxy is told which ones are left, so that one stops ringing.
-            if items.isEmpty, notices.isEmpty { await PushPrune.run() }
+            if answered, items.isEmpty, notices.isEmpty { await PushPrune.run() }
             // SIN PEDIDOS Y CON UNA NOTICIA NUEVA: el timbre era para contarla («tu bóveda se
             // actualizó», o tiene una versión que no puede instalar sola; vaultd ≥ 0.147.0), no para pedir nada. Con pedidos, mandan los pedidos.
+            if let n = subject.flatMap(VaultRing.notice) { Self.markShown(n.id) }
             let updated = Self.freshUpdate(notices)
             if items.isEmpty, let updated {
-                // QUIÉN: la bóveda, o un aparato del acta (un agente) que se nombra por su etiqueta
-                // o su ID. QUÉ: ya se actualizó, o hay una versión que no puede instalar sola
-                // porque necesita permisos de administrador (`update-needs-root`).
-                let needsRoot = updated.ev == Self.evNeedsRoot
-                let base = needsRoot ? "notif_needs_root" : "notif_updated"
-                c.title = updated.device.map { Self.t(base + "_device_title", [$0]) } ?? Self.t(base + "_title", [])
-                c.body = Self.t(base + "_body", [updated.version])
+                Self.describe(updated, into: c)
             } else if !items.isEmpty, let newest = items.max(by: { $0.exp < $1.exp }) {
                 if items.count == 1 {
                     c.title = RequestText.title(newest, Self.t)
@@ -42,6 +42,13 @@ final class NotificationService: UNNotificationServiceExtension {
                     c.title = Self.t("notif_many", [items.count])
                     c.body = RequestText.title(newest, Self.t)
                 }
+            } else if answered, subject == nil {
+                // NO HAY PEDIDO: la bóveda contestó y no pide nada (un aviso ya contado, o uno que
+                // esta app no sabe pintar). iOS no deja callar la alerta, pero sí dejar de decir
+                // «tu bóveda tiene un pedido» cuando no lo hay (2026-11-04: avisos de pedidos de
+                // aparatos con `unattended` que no habían pedido nada).
+                c.title = Self.t("notif_nothing_title", [])
+                c.body = Self.t("notif_nothing_body", [])
             }
             self.finish()
         }
@@ -66,13 +73,56 @@ final class NotificationService: UNNotificationServiceExtension {
 
     static let evNeedsRoot = "update-needs-root"
 
+    /// El asunto sellado del timbre, abierto con la llave de alguna cuenta de este teléfono.
+    static func subject(_ sealed: String?) -> JSON? {
+        guard let sealed, !sealed.isEmpty, let accounts = try? AccountStore.shared.list() else { return nil }
+        for a in accounts {
+            guard let keys = try? PhoneKeys.open(a.id) else { continue }
+            if let s = VaultRing.open(sealed, keys: keys) { return s }
+        }
+        return nil
+    }
+
+    /// Lo que dice el asunto, en la alerta: el pedido, o el aviso.
+    static func apply(_ s: JSON, to c: UNMutableNotificationContent) {
+        if let a = VaultRing.approval(s) {
+            c.title = RequestText.title(a, t)
+            c.body = t("notif_tap", [])
+        } else if let n = VaultRing.notice(s) {
+            describe(n, into: c)
+        }
+    }
+
+    /// Un aviso en la alerta. QUIÉN: la bóveda, o un aparato del acta que se nombra por su
+    /// etiqueta o su ID. QUÉ: se actualizó, necesita permisos de administrador, o (`delivered`)
+    /// un aparato desatendido se llevó claves sin pedir —porque lo tiene concedido—.
+    static func describe(_ n: VaultNotice, into c: UNMutableNotificationContent) {
+        if n.ev == "delivered" {
+            let who = n.device ?? "?"
+            c.title = n.kind == "passwords" ? t("notif_delivered_passwords_title", [who])
+                : t("notif_delivered_secrets_title", [who, n.ns ?? "?"])
+            c.body = t("notif_delivered_body", [])
+            return
+        }
+        let base = n.ev == evNeedsRoot ? "notif_needs_root" : "notif_updated"
+        c.title = n.device.map { t(base + "_device_title", [$0]) } ?? t(base + "_title", [])
+        c.body = t(base + "_body", [n.version])
+    }
+
+    /// Apunta un aviso como ya enseñado (lo contó el asunto), sin olvidar los demás.
+    static func markShown(_ id: String, defaults: UserDefaults = .standard) {
+        let key = "shownNotices"
+        let shown = defaults.stringArray(forKey: key) ?? []
+        if !shown.contains(id) { defaults.set(shown + [id], forKey: key) }
+    }
+
     /// De los avisos que trae la bóveda, el más reciente de los que esta app sabe contar y que
     /// este teléfono todavía NO enseñó, o `nil`. Los que vienen quedan apuntados como enseñados (y solo esos), así un
     /// timbre posterior no repite la misma noticia.
     static func freshUpdate(_ notices: [VaultNotice], defaults: UserDefaults = .standard) -> VaultNotice? {
         let key = "shownNotices"
         let shown = Set(defaults.stringArray(forKey: key) ?? [])
-        let updated = notices.filter { $0.ev == "updated" || $0.ev == evNeedsRoot }
+        let updated = notices.filter { $0.ev == "updated" || $0.ev == evNeedsRoot || $0.ev == "delivered" }
         let fresh = updated.filter { !shown.contains($0.id) }.max(by: { $0.ts < $1.ts })
         if !updated.isEmpty { defaults.set(updated.map(\.id), forKey: key) }
         return fresh
@@ -80,9 +130,10 @@ final class NotificationService: UNNotificationServiceExtension {
 
     /// Los pedidos vivos y los avisos de todas las cuentas del teléfono. Si la bóveda renueva el
     /// papel de una cuenta mientras tanto, SE GUARDA: emitir uno nuevo retira el anterior.
-    static func pending() async -> ([Approval], [VaultNotice]) {
-        guard let accounts = try? AccountStore.shared.list() else { return ([], []) }
-        return await withTaskGroup(of: ([Approval], [VaultNotice]).self) { group in
+    /// `answered`: alguna bóveda contestó. Sin eso, una lista vacía es «no pude preguntar».
+    static func pending() async -> ([Approval], [VaultNotice], Bool) {
+        guard let accounts = try? AccountStore.shared.list() else { return ([], [], false) }
+        return await withTaskGroup(of: ([Approval], [VaultNotice], Bool).self) { group in
             for a in accounts {
                 group.addTask {
                     do {
@@ -97,12 +148,12 @@ final class NotificationService: UNNotificationServiceExtension {
                         // A ring just got here, so this phone does receive them: say so.
                         let r = try await vc.approvalsWithNotices(notify: true)
                         LogAnchors.check(accountId: a.id, notices: r.notices)
-                        return (r.items, r.notices)
-                    } catch { return ([], []) }
+                        return (r.items, r.notices, true)
+                    } catch { return ([], [], false) }
                 }
             }
-            var all: ([Approval], [VaultNotice]) = ([], [])
-            for await r in group { all.0 += r.0; all.1 += r.1 }
+            var all: ([Approval], [VaultNotice], Bool) = ([], [], false)
+            for await r in group { all.0 += r.0; all.1 += r.1; all.2 = all.2 || r.2 }
             return all
         }
     }

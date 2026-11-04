@@ -62,6 +62,10 @@
     <string name="passwords_hint">Approving a password lets that device read passwords until the vault restarts.</string>
     <string name="notif_many">%1$d requests in your vault</string>
     <string name="notif_tap">Tap to approve or deny.</string>
+    <string name="notif_delivered_passwords_title">%1$s took a password</string>
+    <string name="notif_delivered_secrets_title">%1$s took the keys of %2$s</string>
+    <string name="notif_delivered_body">Without asking: this device is allowed to. If you do not recognise it, take that away from the vault.</string>
+    <string name="notif_delivered_generic">A device used your keys</string>
     <string name="notif_updated_title">Your vault was updated</string>
     <string name="notif_updated_device_title">%1$s was updated</string>
     <string name="notif_updated_body">It now runs %1$s.</string>
