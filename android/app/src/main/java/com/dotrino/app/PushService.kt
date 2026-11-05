@@ -58,6 +58,14 @@ class PushService : FirebaseMessagingService() {
          * El aviso. Con [pending] dice qué se pide: uno solo, su motivo como título; varios,
          * cuántos y el más reciente. Sin él (no se pudo preguntar a tiempo), el genérico.
          */
+        /**
+         * DE QUÉ CUENTA ES cada pedido y cada aviso (id → nombre del perfil). Un teléfono puede
+         * aprobar por varias cuentas, y la notificación no decía de cuál (dueño, 2026-11-05: «las
+         * notificaciones llevan el nombre del perfil, deberían»). Se llena al abrir el asunto con
+         * la llave de una cuenta y al preguntar a cada bóveda.
+         */
+        private val accountOf = java.util.concurrent.ConcurrentHashMap<String, String>()
+
         fun notifyRequest(ctx: Context, pending: List<Approval>? = null, again: Boolean = false) {
             ensureChannel(ctx)
             val open = Intent(ctx, MainActivity::class.java).apply {
@@ -80,6 +88,7 @@ class PushService : FirebaseMessagingService() {
                 val (title, text) = if (pending.size == 1) RequestText.title(ctx, newest) to ctx.getString(R.string.notif_tap)
                     else ctx.getString(R.string.notif_many, pending.size) to RequestText.title(ctx, newest)
                 base().setContentTitle(title).setContentText(text)
+                    .setSubText(RequestText.profilesOf(pending.map { it.id }, accountOf))
                     .setStyle(NotificationCompat.BigTextStyle().bigText(text))
                     // El motivo nombra aparatos y cajones: con el teléfono bloqueado, el genérico.
                     .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
@@ -114,6 +123,7 @@ class PushService : FirebaseMessagingService() {
                 .setSmallIcon(R.drawable.ic_vault)
                 .setContentTitle(title)
                 .setContentText(body)
+                .setSubText(RequestText.profilesOf(listOf(notice.id), accountOf))
                 .setStyle(NotificationCompat.BigTextStyle().bigText(body))
                 .setCategory(NotificationCompat.CATEGORY_STATUS)
                 .setAutoCancel(true)
@@ -140,6 +150,7 @@ class PushService : FirebaseMessagingService() {
                 .setSmallIcon(R.drawable.ic_vault)
                 .setContentTitle(title)
                 .setContentText(body)
+                .setSubText(RequestText.profilesOf(listOf(notice.id), accountOf))
                 .setStyle(NotificationCompat.BigTextStyle().bigText(body))
                 .setCategory(NotificationCompat.CATEGORY_STATUS)
                 .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
@@ -159,7 +170,10 @@ class PushService : FirebaseMessagingService() {
             val identity = Identity.get(ctx.applicationContext)
             for (a in RemoteAccounts.list(identity)) {
                 val keys = runCatching { RemoteKeys.open(identity, a.id) }.getOrNull() ?: continue
-                VaultRing.open(sealed, keys)?.let { return it }
+                VaultRing.open(sealed, keys)?.let { subject ->
+                    (subject["id"] as? kotlinx.serialization.json.JsonPrimitive)?.content?.let { accountOf[it] = a.name }
+                    return subject
+                }
             }
             return null
         }
@@ -213,6 +227,8 @@ class PushService : FirebaseMessagingService() {
                 // A ring just got here, so this phone does receive them: say so (see ApprovalsModel.notifiable).
                 val answer = VaultClient(a, keys, conn) { renewed = it }.approvalsWithNotices(notify = true)
                 runCatching { LogAnchors.check(ctx, a.id, answer.notices) }.onFailure { Log.w(TAG, "log anchor: ${it.message}") }
+                answer.items.forEach { accountOf[it.id] = a.name }
+                answer.notices.forEach { accountOf[it.id] = a.name }
                 return answer
             } finally {
                 conn.close()

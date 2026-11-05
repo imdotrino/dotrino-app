@@ -21,10 +21,17 @@ final class NotificationService: UNNotificationServiceExtension {
         // EL ASUNTO, ANTES QUE NADA (dueño, 2026-11-04: «que al menos tengan asunto, para ver
         // quién solicita qué»). Viene sellado a este teléfono en el timbre (vaultd ≥ 0.190.0) y
         // se abre sin red: la alerta dice el porqué aunque la bóveda no conteste a tiempo.
-        let subject = Self.subject(request.content.userInfo["sealed"] as? String)
-        if let s = subject { Self.apply(s, to: c) }
+        // DE QUÉ CUENTA ES (dueño, 2026-11-05: «las notificaciones llevan el nombre del perfil,
+        // deberían»): un teléfono aprueba por varias cuentas, y la alerta no decía de cuál. Va en
+        // el subtítulo: el id del pedido o del aviso → el nombre de la cuenta que lo abrió.
+        let opened = Self.subject(request.content.userInfo["sealed"] as? String)
+        let subject = opened?.0
+        if let (s, name) = opened {
+            Self.apply(s, to: c)
+            c.subtitle = name
+        }
         Task {
-            let (items, notices, answered) = await Self.pending()
+            let (items, notices, answered, names) = await Self.pending()
             // A RING THAT NO ACCOUNT EXPLAINS may be for one that is no longer on this phone:
             // the proxy is told which ones are left, so that one stops ringing.
             if answered, items.isEmpty, notices.isEmpty { await PushPrune.run() }
@@ -34,7 +41,9 @@ final class NotificationService: UNNotificationServiceExtension {
             let updated = Self.freshUpdate(notices)
             if items.isEmpty, let updated {
                 Self.describe(updated, into: c)
+                c.subtitle = RequestText.profilesOf([updated.id], names) ?? ""
             } else if !items.isEmpty, let newest = items.max(by: { $0.exp < $1.exp }) {
+                c.subtitle = RequestText.profilesOf(items.map(\.id), names) ?? 
                 if items.count == 1 {
                     c.title = RequestText.title(newest, Self.t)
                     c.body = Self.t("notif_tap", [])
@@ -74,11 +83,12 @@ final class NotificationService: UNNotificationServiceExtension {
     static let evNeedsRoot = "update-needs-root"
 
     /// El asunto sellado del timbre, abierto con la llave de alguna cuenta de este teléfono.
-    static func subject(_ sealed: String?) -> JSON? {
+    /// Y el nombre de esa cuenta, que va en el subtítulo.
+    static func subject(_ sealed: String?) -> (JSON, String)? {
         guard let sealed, !sealed.isEmpty, let accounts = try? AccountStore.shared.list() else { return nil }
         for a in accounts {
             guard let keys = try? PhoneKeys.open(a.id) else { continue }
-            if let s = VaultRing.open(sealed, keys: keys) { return s }
+            if let s = VaultRing.open(sealed, keys: keys) { return (s, a.name) }
         }
         return nil
     }
@@ -131,9 +141,10 @@ final class NotificationService: UNNotificationServiceExtension {
     /// Los pedidos vivos y los avisos de todas las cuentas del teléfono. Si la bóveda renueva el
     /// papel de una cuenta mientras tanto, SE GUARDA: emitir uno nuevo retira el anterior.
     /// `answered`: alguna bóveda contestó. Sin eso, una lista vacía es «no pude preguntar».
-    static func pending() async -> ([Approval], [VaultNotice], Bool) {
-        guard let accounts = try? AccountStore.shared.list() else { return ([], [], false) }
-        return await withTaskGroup(of: ([Approval], [VaultNotice], Bool).self) { group in
+    /// `names`: de qué cuenta es cada pedido y cada aviso (id → nombre), para el subtítulo.
+    static func pending() async -> ([Approval], [VaultNotice], Bool, [String: String]) {
+        guard let accounts = try? AccountStore.shared.list() else { return ([], [], false, [:]) }
+        return await withTaskGroup(of: ([Approval], [VaultNotice], Bool, [String: String]).self) { group in
             for a in accounts {
                 group.addTask {
                     do {
@@ -148,12 +159,15 @@ final class NotificationService: UNNotificationServiceExtension {
                         // A ring just got here, so this phone does receive them: say so.
                         let r = try await vc.approvalsWithNotices(notify: true)
                         LogAnchors.check(accountId: a.id, notices: r.notices)
-                        return (r.items, r.notices, true)
-                    } catch { return ([], [], false) }
+                        var names: [String: String] = [:]
+                        for i in r.items { names[i.id] = a.name }
+                        for n in r.notices { names[n.id] = a.name }
+                        return (r.items, r.notices, true, names)
+                    } catch { return ([], [], false, [:]) }
                 }
             }
-            var all: ([Approval], [VaultNotice], Bool) = ([], [], false)
-            for await r in group { all.0 += r.0; all.1 += r.1; all.2 = all.2 || r.2 }
+            var all: ([Approval], [VaultNotice], Bool, [String: String]) = ([], [], false, [:])
+            for await r in group { all.0 += r.0; all.1 += r.1; all.2 = all.2 || r.2; all.3.merge(r.3) { a, _ in a } }
             return all
         }
     }

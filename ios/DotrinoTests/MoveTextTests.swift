@@ -69,4 +69,11 @@ final class MoveTextTests: XCTestCase {
         XCTAssertEqual(RequestText.named("", "AB12-CD34"), "AB12-CD34")
         XCTAssertEqual(RequestText.named(nil, "AB12-CD34"), "AB12-CD34")
     }
+
+    func testTheNotificationSaysWhichProfile() {
+        let names = ["r1": "Personal", "r2": "Cepi", "r3": "Personal", "r4": ""]
+        XCTAssertEqual(RequestText.profilesOf(["r1"], names), "Personal")
+        XCTAssertEqual(RequestText.profilesOf(["r1", "r2", "r3"], names), "Personal, Cepi")
+        XCTAssertNil(RequestText.profilesOf(["x", "r4"], names))
+    }
 }

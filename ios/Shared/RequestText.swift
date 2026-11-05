@@ -12,6 +12,14 @@ enum RequestText {
 
     /// A device as it is shown: ALIAS AND ID, «laptop (AB12-CD34)» (the owner, 2026-11-05: «it must
     /// show the ID and the alias, both»); only the ID when it has no alias.
+    /// The profiles (accounts) these requests or notices belong to, without repeating and in
+    /// order; `nil` when none is known. It goes in the notification's subtitle.
+    static func profilesOf(_ ids: [String], _ names: [String: String]) -> String? {
+        var seen: [String] = []
+        for id in ids { if let n = names[id], !n.isEmpty, !seen.contains(n) { seen.append(n) } }
+        return seen.isEmpty ? nil : seen.joined(separator: ", ")
+    }
+
     static func named(_ label: String?, _ deviceId: String) -> String {
         guard let label, !label.trimmingCharacters(in: .whitespaces).isEmpty else { return deviceId }
         return "\(label) (\(deviceId))"

@@ -19,6 +19,14 @@ object RequestText {
      * A device as it is shown: ALIAS AND ID, «laptop (AB12-CD34)» (the owner, 2026-11-05: «it
      * must show the ID and the alias, both»); only the ID when it has no alias.
      */
+    /**
+     * The profiles (accounts) these requests or notices belong to, without repeating and in order;
+     * `null` when none is known. It goes in the notification: a phone can approve for several
+     * accounts, and the notice did not say which one.
+     */
+    fun profilesOf(ids: List<String>, names: Map<String, String>): String? =
+        ids.mapNotNull { names[it]?.takeIf { n -> n.isNotBlank() } }.distinct().joinToString(", ").ifBlank { null }
+
     fun named(label: String?, deviceId: String): String =
         if (!label.isNullOrBlank()) "$label ($deviceId)" else deviceId
 
