@@ -11,6 +11,7 @@ import com.dotrino.sdk.RemoteKeys
 import com.dotrino.sdk.ProxyConnection
 import com.dotrino.sdk.VaultClient
 import com.dotrino.sdk.VaultError
+import com.dotrino.sdk.VaultNotice
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -57,6 +58,8 @@ class ApprovalsModel(context: Context) {
         val status: Status = Status.Connecting,
         val items: List<Approval> = emptyList(),
         val grants: List<Grant> = emptyList(),
+        /** What the vault has to tell of the last 24 h (closed requests, deliveries, updates). */
+        val notices: List<VaultNotice> = emptyList(),
         /** When the lists were last confirmed by the vault; null = never yet. */
         val confirmedAt: Long? = null,
         /** Requests being answered right now: their buttons stay disabled. */
@@ -212,7 +215,7 @@ class ApprovalsModel(context: Context) {
                     val grants = runCatching { vc.grants() }.getOrElse { _state.value[id]?.grants ?: emptyList() }
                     val before = _state.value[id]?.items?.map { it.id }?.toSet()
                     val loaded = _state.value[id]?.confirmedAt != null
-                    set(id) { it.copy(items = items, grants = grants, confirmedAt = System.currentTimeMillis(), error = null) }
+                    set(id) { it.copy(items = items, grants = grants, notices = answer.notices, confirmedAt = System.currentTimeMillis(), error = null) }
                     // A request that arrived now, live (with the screen open no system notice
                     // comes): the trino. Not on the first load, which is only opening the screen.
                     if (before != null && loaded && items.any { it.id !in before }) trino()

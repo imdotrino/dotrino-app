@@ -125,6 +125,14 @@ class ApprovalsScreen(
                 rows += Note("gt:$id", s(R.string.grants_title))
                 st.grants.forEach { rows += GrantRow(id, it, it.id in st.busy) }
             }
+            // THE LAST 24 HOURS: what already happened, newest first. A ring that sounded and is no
+            // longer pending has its explanation here (approved, denied, expired, delivered…).
+            if (st.confirmedAt != null) {
+                rows += Note("mt:$id", s(R.string.moves_title))
+                val moves = st.notices.filter { MoveText.shown(it) }.sortedByDescending { it.ts }
+                if (moves.isEmpty()) rows += Note("mn:$id", s(R.string.moves_none))
+                moves.forEach { rows += Note("mv:$id:${it.id}", MoveText.line(activity, it)) }
+            }
             rows += Note("p:$id:${st.presence}", s(if (st.presence) R.string.presence_on else R.string.presence_off))
             rows += Action("pa:$id", s(if (st.presence) R.string.presence_turn_off else R.string.presence_turn_on)) { turnPresence(id, !st.presence) }
         }

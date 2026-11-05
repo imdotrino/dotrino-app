@@ -85,4 +85,21 @@
     <string name="discover_many">More than one vault is pairing nearby. Use the QR code.</string>
     <string name="notif_log_cut_title">Your vault lost records</string>
     <string name="notif_log_cut_body">Your vault\'s log has fewer entries than you already saw, or its last ones were changed. Someone may have erased what happened. Check that machine.</string>
+    <string name="moves_title">Last 24 hours</string>
+    <string name="moves_none">Nothing in the last 24 hours.</string>
+    <string name="move_the_vault">The vault</string>
+    <string name="move_asks">%1$s asked for the keys of %2$s</string>
+    <string name="move_writes">%1$s wanted to save variables in %2$s</string>
+    <string name="move_reveals">%1$s asked to see a variable of %2$s</string>
+    <string name="move_passwords">%1$s asked for a password</string>
+    <string name="move_update">%1$s asked to update</string>
+    <string name="move_incident">Security incident about %1$s</string>
+    <string name="move_approved">approved</string>
+    <string name="move_denied">denied</string>
+    <string name="move_blocked">blocked</string>
+    <string name="move_ignored">ignored</string>
+    <string name="move_withdrawn">withdrawn</string>
+    <string name="move_expired">expired with no answer</string>
+    <string name="move_by">by %1$s</string>
+    <string name="move_contested">Two devices answered the same pairing invitation, and it was cancelled.</string>
 </resources>

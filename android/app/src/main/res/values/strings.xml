@@ -85,4 +85,21 @@
     <string name="discover_many">Hay más de una bóveda emparejando cerca. Usa el código QR.</string>
     <string name="notif_log_cut_title">Tu bóveda perdió registros</string>
     <string name="notif_log_cut_body">La bitácora de tu bóveda tiene menos entradas de las que ya viste, o le cambiaron las últimas. Alguien pudo borrar lo que pasó. Revisa esa máquina.</string>
+    <string name="moves_title">Últimas 24 horas</string>
+    <string name="moves_none">Nada en las últimas 24 horas.</string>
+    <string name="move_the_vault">La bóveda</string>
+    <string name="move_asks">%1$s pidió las claves de %2$s</string>
+    <string name="move_writes">%1$s quiso guardar variables en %2$s</string>
+    <string name="move_reveals">%1$s pidió ver una variable de %2$s</string>
+    <string name="move_passwords">%1$s pidió una contraseña</string>
+    <string name="move_update">%1$s pidió actualizarse</string>
+    <string name="move_incident">Incidente de seguridad de %1$s</string>
+    <string name="move_approved">aprobado</string>
+    <string name="move_denied">denegado</string>
+    <string name="move_blocked">bloqueado</string>
+    <string name="move_ignored">ignorado</string>
+    <string name="move_withdrawn">retirado</string>
+    <string name="move_expired">caducó sin respuesta</string>
+    <string name="move_by">por %1$s</string>
+    <string name="move_contested">Dos aparatos respondieron a la misma invitación de emparejar y se canceló.</string>
 </resources>
