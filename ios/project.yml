@@ -119,10 +119,10 @@ targets:
     platform: iOS
     sources: [DotrinoTests]
     dependencies:
+      # Ni DotrinoNative ni su Bluetooth se enlazan aquí: ya van dentro de la app (BUNDLE_LOADER).
+      # Enlazar el Bluetooth aparte lo dejaba sin los símbolos de DotrinoNative (BleWire…) y las
+      # pruebas no llegaban a correr.
       - target: Dotrino
-      - package: DotrinoNative
-      - package: DotrinoNative
-        product: DotrinoNativeBluetooth
     settings:
       base:
         GENERATE_INFOPLIST_FILE: YES
