@@ -43,7 +43,7 @@ final class NotificationService: UNNotificationServiceExtension {
                 Self.describe(updated, into: c)
                 c.subtitle = RequestText.profilesOf([updated.id], names) ?? ""
             } else if !items.isEmpty, let newest = items.max(by: { $0.exp < $1.exp }) {
-                c.subtitle = RequestText.profilesOf(items.map(\.id), names) ?? 
+                c.subtitle = RequestText.profilesOf(items.map(\.id), names) ?? ""
                 if items.count == 1 {
                     c.title = RequestText.title(newest, Self.t)
                     c.body = Self.t("notif_tap", [])
