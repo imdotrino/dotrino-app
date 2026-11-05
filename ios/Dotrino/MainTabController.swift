@@ -2,6 +2,7 @@ import Combine
 import os
 import DotrinoNative
 import DotrinoNativeUI
+import DotrinoNativeBluetooth
 import SwiftUI
 import UIKit
 import WebKit

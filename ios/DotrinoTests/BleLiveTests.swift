@@ -1,4 +1,5 @@
 import DotrinoNative
+import DotrinoNativeBluetooth
 import XCTest
 
 /// EL BLUETOOTH EN VIVO, contra un PC de verdad cerca (dotrino-proxy-client/docs/bluetooth.md).

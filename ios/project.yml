@@ -21,7 +21,7 @@ packages:
   # La librería nativa del ecosistema (repo dotrino-native): cripto, cable, cuentas, almacén.
   DotrinoNative:
     url: https://github.com/imdotrino/dotrino-native
-    from: 0.48.0
+    from: 0.49.0
 targets:
   Dotrino:
     type: application
@@ -34,6 +34,9 @@ targets:
       # Las pantallas del ecosistema en SwiftUI (barra, idioma): las mismas que usa padel.
       - package: DotrinoNative
         product: DotrinoNativeUI
+      # El Bluetooth (encontrar la bóveda cerca al emparejar): producto aparte desde dotrino-native 0.49.0.
+      - package: DotrinoNative
+        product: DotrinoNativeBluetooth
     info:
       path: Dotrino/Info.plist
       properties:
@@ -118,6 +121,8 @@ targets:
     dependencies:
       - target: Dotrino
       - package: DotrinoNative
+      - package: DotrinoNative
+        product: DotrinoNativeBluetooth
     settings:
       base:
         GENERATE_INFOPLIST_FILE: YES
