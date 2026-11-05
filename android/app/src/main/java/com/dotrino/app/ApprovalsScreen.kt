@@ -296,7 +296,7 @@ class ApprovalsScreen(
             when (r) {
                 is Req -> v.findViewById<TextView>(R.id.left).text = s(R.string.req_left, left(r.a.exp - now))
                 is GrantRow -> v.findViewById<TextView>(R.id.sub).text =
-                    "${r.g.ns} · " + s(R.string.grant_sub, left(r.g.exp - now), r.g.uses.toInt())
+                    "${RequestText.named(r.g.label, r.g.deviceId)} · ${r.g.ns} · " + s(R.string.grant_sub, left(r.g.exp - now), r.g.uses.toInt())
                 else -> {}
             }
         }

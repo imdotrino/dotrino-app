@@ -90,3 +90,22 @@
 "discover_many" = "More than one vault is pairing nearby. Use the QR code.";
 "notif_log_cut_title" = "Your vault lost records";
 "notif_log_cut_body" = "Your vault's log has fewer entries than you already saw, or its last ones were changed. Someone may have erased what happened. Check that machine.";
+
+/* Requests: the last 24 hours */
+"moves_title" = "Last 24 hours";
+"moves_none" = "Nothing in the last 24 hours.";
+"move_the_vault" = "The vault";
+"move_asks" = "%1$@ asked for the keys of %2$@";
+"move_writes" = "%1$@ wanted to save variables in %2$@";
+"move_reveals" = "%1$@ asked to see a variable of %2$@";
+"move_passwords" = "%@ asked for a password";
+"move_update" = "%@ asked to update";
+"move_incident" = "Security incident about %@";
+"move_approved" = "approved";
+"move_denied" = "denied";
+"move_blocked" = "blocked";
+"move_ignored" = "ignored";
+"move_withdrawn" = "withdrawn";
+"move_expired" = "expired with no answer";
+"move_by" = "by %@";
+"move_contested" = "Two devices answered the same pairing invitation, and it was cancelled.";

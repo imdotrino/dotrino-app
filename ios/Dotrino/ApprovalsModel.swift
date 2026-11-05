@@ -31,6 +31,8 @@ final class ApprovalsModel: ObservableObject {
         var status: Status = .connecting
         var items: [Approval] = []
         var grants: [Grant] = []
+        /// What the vault has to tell of the last 24 h (closed requests, deliveries, updates).
+        var notices: [VaultNotice] = []
         /// When the lists were last confirmed by the vault; nil = never yet.
         var confirmedAt: Int64?
         /// Requests being answered right now: their buttons stay disabled.
@@ -197,7 +199,7 @@ final class ApprovalsModel: ObservableObject {
                 // the trino. Not on the first load, which is only opening the screen.
                 if let before, state[id]?.confirmedAt != nil, items.contains(where: { !before.contains($0.id) }) { trino() }
                 set(id) {
-                    $0.items = items; $0.grants = grants; $0.confirmedAt = nowMs(); $0.error = nil
+                    $0.items = items; $0.grants = grants; $0.notices = answer.notices; $0.confirmedAt = nowMs(); $0.error = nil
                 }
                 if before != Set(items.map(\.id)) {
                     log.info("account \(self.state[id]?.account.deviceId ?? "?", privacy: .public): \(items.count) request(s)")

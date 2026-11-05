@@ -91,6 +91,14 @@ struct ApprovalsView: View {
                             note(L("grants_title"))
                             ForEach(st.grants) { g in grant(st, g, now: now) }
                         }
+                        // THE LAST 24 HOURS: what already happened, newest first. A ring that sounded and
+                        // is no longer pending has its explanation here (approved, denied, expired…).
+                        if st.confirmedAt != nil {
+                            note(L("moves_title"))
+                            let moves = st.notices.filter(MoveText.shown).sorted { $0.ts > $1.ts }
+                            if moves.isEmpty { note(L("moves_none")) }
+                            ForEach(moves, id: \.id) { n in note(moveLine(n)) }
+                        }
                         note(L(st.presence ? "presence_on" : "presence_off"))
                         Button(L(st.presence ? "presence_turn_off" : "presence_turn_on")) { Task { await turnPresence(st.account.id, !st.presence) } }
                             .font(.footnote).buttonStyle(.bordered).tint(Palette.accent)
@@ -224,13 +232,18 @@ struct ApprovalsView: View {
         HStack {
             VStack(alignment: .leading, spacing: 2) {
                 Text(g.ctx.map(commandOf) ?? g.ns).font(.system(.footnote, design: .monospaced)).foregroundColor(Palette.fg)
-                Text("\(g.ns) · " + L("grant_sub", left(g.exp - now), Int32(clamping: g.uses))).font(.caption).foregroundColor(Palette.muted)
+                Text("\(RequestText.named(g.label, g.deviceId)) · \(g.ns) · " + L("grant_sub", left(g.exp - now), Int32(clamping: g.uses))).font(.caption).foregroundColor(Palette.muted)
             }
             Spacer()
             Button(L("grant_revoke")) { model.revokeGrant(st.account.id, g.id) }
                 .buttonStyle(.bordered).disabled(st.busy.contains(g.id))
         }
         .listRowBackground(Palette.card)
+    }
+
+    private func moveLine(_ n: VaultNotice) -> String {
+        let time = DateFormatter.localizedString(from: Date(timeIntervalSince1970: Double(n.ts) / 1000), dateStyle: .none, timeStyle: .short)
+        return time + " · " + MoveText.text(n) { key, args in String(format: L(key), arguments: args) }
     }
 
     private func left(_ ms: Int64) -> String {

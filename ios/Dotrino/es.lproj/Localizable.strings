@@ -90,3 +90,22 @@
 "discover_many" = "Hay más de una bóveda emparejando cerca. Usa el código QR.";
 "notif_log_cut_title" = "Tu bóveda perdió registros";
 "notif_log_cut_body" = "La bitácora de tu bóveda tiene menos entradas de las que ya viste, o le cambiaron las últimas. Alguien pudo borrar lo que pasó. Revisa esa máquina.";
+
+/* Pedidos: las últimas 24 horas */
+"moves_title" = "Últimas 24 horas";
+"moves_none" = "Nada en las últimas 24 horas.";
+"move_the_vault" = "La bóveda";
+"move_asks" = "%1$@ pidió las claves de %2$@";
+"move_writes" = "%1$@ quiso guardar variables en %2$@";
+"move_reveals" = "%1$@ pidió ver una variable de %2$@";
+"move_passwords" = "%@ pidió una contraseña";
+"move_update" = "%@ pidió actualizarse";
+"move_incident" = "Incidente de seguridad de %@";
+"move_approved" = "aprobado";
+"move_denied" = "denegado";
+"move_blocked" = "bloqueado";
+"move_ignored" = "ignorado";
+"move_withdrawn" = "retirado";
+"move_expired" = "caducó sin respuesta";
+"move_by" = "por %@";
+"move_contested" = "Dos aparatos respondieron a la misma invitación de emparejar y se canceló.";

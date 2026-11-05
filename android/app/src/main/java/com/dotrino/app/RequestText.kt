@@ -13,8 +13,14 @@ import kotlinx.serialization.json.jsonPrimitive
 object RequestText {
     private const val VAULT_PRODUCT = "@dotrino/vaultd"
 
-    fun who(a: Approval): String =
-        if (a.label.isNotBlank()) "${a.label} (${a.deviceId})" else a.deviceId
+    fun who(a: Approval): String = named(a.label, a.deviceId)
+
+    /**
+     * A device as it is shown: ALIAS AND ID, «laptop (AB12-CD34)» (the owner, 2026-11-05: «it
+     * must show the ID and the alias, both»); only the ID when it has no alias.
+     */
+    fun named(label: String?, deviceId: String): String =
+        if (!label.isNullOrBlank()) "$label ($deviceId)" else deviceId
 
     fun title(ctx: Context, a: Approval): String = when (a.kind) {
         // Someone asks to install a new version: the vault itself (no `product`, or its own), or

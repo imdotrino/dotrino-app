@@ -8,8 +8,13 @@ import Foundation
 enum RequestText {
     typealias T = (_ key: String, _ args: [CVarArg]) -> String
 
-    static func who(_ a: Approval) -> String {
-        a.label.isEmpty ? a.deviceId : "\(a.label) (\(a.deviceId))"
+    static func who(_ a: Approval) -> String { named(a.label, a.deviceId) }
+
+    /// A device as it is shown: ALIAS AND ID, «laptop (AB12-CD34)» (the owner, 2026-11-05: «it must
+    /// show the ID and the alias, both»); only the ID when it has no alias.
+    static func named(_ label: String?, _ deviceId: String) -> String {
+        guard let label, !label.trimmingCharacters(in: .whitespaces).isEmpty else { return deviceId }
+        return "\(label) (\(deviceId))"
     }
 
     static func title(_ a: Approval, _ t: T) -> String {
